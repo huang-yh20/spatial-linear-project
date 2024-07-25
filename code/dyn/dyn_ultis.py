@@ -71,7 +71,9 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
         if filter:
             x_smoothed_E = gaussian_filter1d(record_x[:,0:p_net.N_E],200)
             x_smoothed_I = gaussian_filter1d(record_x[:,p_net.N_E:p_net.N_E+p_net.N_I],50)
-            scale_max = np.max(np.maximum(x_smoothed_E),np.maximum(x_smoothed_I))
+            scale_max = np.maximum(np.max(x_smoothed_E),np.max(x_smoothed_I))
+        else:
+            scale_max = np.max(record_x)
         for step in trange(np.shape(record_x)[0]):
             fig, ax = plt.subplots()
             # 绘制数据
@@ -111,7 +113,9 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
             for step in range(np.shape(record_x)[0]):
                 x_imag_smoothed.append(gaussian_filter(record_x_img[step,:,:],10))
             x_imag_smoothed = np.array(x_imag_smoothed)
-        scale_max = np.maximum(x_imag_smoothed)
+            scale_max = np.max(x_imag_smoothed)
+        else:
+            scale_max = np.max(record_x)
         for step in trange(np.shape(record_x)[0]):
             fig, ax = plt.subplots()
             
