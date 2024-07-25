@@ -106,7 +106,11 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
     if dim == 2:
         record_x = np.pad(record_x[:,0:p_net.N_E], ((0,0),(0,int(np.ceil(np.sqrt(p_net.N_E))**2 - p_net.N_E))))
         record_x_img = record_x.reshape(np.shape(record_x)[0],int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))
-        x_imag_smoothed = gaussian_filter(record_x_img,10,axes=(1,2))
+        if filter:
+            x_imag_smoothed = []
+            for step in range(np.shape(record_x)[0]):
+                x_imag_smoothed.append(gaussian_filter(record_x_img[step,:,:],10))
+            x_imag_smoothed = np.array(x_imag_smoothed)
         scale_max = np.maximum(x_imag_smoothed)
         for step in trange(np.shape(record_x)[0]):
             fig, ax = plt.subplots()
