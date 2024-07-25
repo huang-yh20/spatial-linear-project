@@ -6,7 +6,7 @@ from tqdm import trange
 import matplotlib.colors as mcolors
 import imageio
 import sys
-sys.path.append("./exp/code/")
+sys.path.append("./code/")
 from spatial_ultis import *
 from dyn_ultis import *
 

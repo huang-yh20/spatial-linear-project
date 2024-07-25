@@ -4,7 +4,7 @@ import pickle as pk
 import scipy.sparse as spa
 import scipy.sparse.linalg as spalin
 import sys
-sys.path.append("./exp/code/")
+sys.path.append("./code/")
 from spatial_ultis import *
 
 rescale = 1

@@ -9,7 +9,7 @@ from matplotlib.ticker import MaxNLocator
 import imageio
 from typing import NamedTuple, Union, Callable
 import sys
-sys.path.append("./exp/code/")
+sys.path.append("./code/")
 from spatial_ultis import *
 
 
@@ -59,9 +59,19 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
     p_net = p_net if p_net != None else generate_params_default(2)
     p_simul = p_simul if p_simul != None else Simul_Params(T = 40, t_step=100, record_step=10, activation_func='linear')
     
+    if p_simul.activation_func == "linear":
+        activation_func = activation_func_linear
+    elif p_simul.activation_func == "tanh":
+        activation_func = activation_func_tanh
+    record_x = activation_func(record_x)
+
     frames = []
     scale_max = np.max(record_x)
     if dim == 1:
+        if filter:
+            x_smoothed_E = gaussian_filter1d(record_x[:,0:p_net.N_E],200)
+            x_smoothed_I = gaussian_filter1d(record_x[:,p_net.N_E:p_net.N_E+p_net.N_I],50)
+            scale_max = np.max(np.maximum(x_smoothed_E),np.maximum(x_smoothed_I))
         for step in trange(np.shape(record_x)[0]):
             fig, ax = plt.subplots()
             # 绘制数据
@@ -69,8 +79,6 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
                 ax.plot(np.linspace(0,1,p_net.N_E), record_x[step,0:p_net.N_E],'ro',markersize=0.5,label='Exc.')
                 ax.plot(np.linspace(0,1,p_net.N_I), record_x[step,p_net.N_E:p_net.N_E+p_net.N_I],'bo',markersize=0.5,label='Inh.')
             else:
-                x_smoothed_E = gaussian_filter1d(record_x[step,0:p_net.N_E],200)
-                x_smoothed_I = gaussian_filter1d(record_x[step,p_net.N_E:p_net.N_E+p_net.N_I],50)
                 ax.plot(np.linspace(0,1,p_net.N_E), x_smoothed_E,'r-',markersize=0.5,label='Exc.')
                 ax.plot(np.linspace(0,1,p_net.N_I), x_smoothed_I,'b-',markersize=0.5,label='Inh.')
             ax.plot(np.linspace(0,1,p_net.N_E), np.linspace(0,0,p_net.N_E), "k--")
@@ -97,16 +105,18 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
 
     if dim == 2:
         record_x = np.pad(record_x[:,0:p_net.N_E], ((0,0),(0,int(np.ceil(np.sqrt(p_net.N_E))**2 - p_net.N_E))))
+        record_x_img = record_x.reshape(np.shape(record_x)[0],int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))
+        x_imag_smoothed = gaussian_filter(record_x_img,10,axes=(1,2))
+        scale_max = np.maximum(x_imag_smoothed)
         for step in trange(np.shape(record_x)[0]):
             fig, ax = plt.subplots()
             
             norm = mcolors.TwoSlopeNorm(vmin=-scale_max, vcenter=0, vmax=scale_max)
             if filter == False:
-                img = ax.imshow(record_x[step][0:int(np.ceil(np.sqrt(p_net.N_E)))**2].reshape((int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))), cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
+                #img = ax.imshow(record_x[step][0:int(np.ceil(np.sqrt(p_net.N_E)))**2].reshape((int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))), cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
+                img = ax.imshow(record_x_img[step,:,:], cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
             else:
-                x_imag = record_x[step][0:int(np.ceil(np.sqrt(p_net.N_E)))**2].reshape((int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E)))))
-                x_smoothed = gaussian_filter(x_imag,10)
-                img = ax.imshow(x_smoothed, cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
+                img = ax.imshow(x_imag_smoothed[step,:,:], cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
             ax.set_xlabel("Location", fontsize=15)
             ax.set_ylabel("Location", fontsize=15)
             # 设置 x 和 y 轴的刻度
@@ -133,7 +143,7 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
             plt.close(fig)
 
     # 将所有帧保存为一个GIF
-    imageio.mimsave("./exp/figs/"+file_name+".gif", frames, duration=0.05)
+    imageio.mimsave("./figs/"+file_name+".gif", frames, duration=0.05)
 
 def product_dyn_simul_gif(file_name, generate_params:Callable, dim=1):
     p_simul_linear = Simul_Params(T = 40, t_step=100, record_step=10, activation_func='linear')
@@ -174,7 +184,7 @@ def product_dyn_simul_gif(file_name, generate_params:Callable, dim=1):
             ax.set_aspect('equal') 
 
             plt.tight_layout()
-            plt.savefig(r'./exp/figs/'+'dyn_eigs_'+file_name+'_'+activation_func_str+str(trial), bbox_inches='tight')
+            plt.savefig(r'./figs/'+'dyn_eigs_'+file_name+'_'+activation_func_str+str(trial), bbox_inches='tight')
             plt.close()
 
             record_x = dyn_simul(p_net, p_simul)
@@ -192,6 +202,6 @@ def record_to_gif():
         for simul_num in range(len(p_simul_list)):
             activation_func_str, p_simul = p_simul_list[simul_num]
             for trial in range(trial_num_list[simul_num]):
-                record_x = np.load(r'./data/'+'dyn_record_'+file_name+'_'+activation_func_str+str(trial))
+                record_x = np.load(r'./data/'+'dyn_record_'+file_name+'_'+activation_func_str+str(trial)+'.npy')
                 product_gif(record_x, p_net=None, p_simul = p_simul, file_name='dyn_gif_'+file_name+'_'+activation_func_str+str(trial), dim=2)
                 product_gif(record_x, p_net=None, p_simul = p_simul, file_name='dyn_gif_smoothed_'+file_name+'_'+activation_func_str+str(trial), dim=2, filter=True)

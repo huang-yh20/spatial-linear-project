@@ -8,7 +8,7 @@ import matplotlib.colors as mcolors
 from matplotlib.ticker import MaxNLocator
 import imageio
 import sys
-sys.path.append("./exp/code/")
+sys.path.append("./code/")
 from spatial_ultis import *
 from dyn_ultis import *
 
