@@ -158,6 +158,23 @@ def product_dyn_simul_gif(file_name, generate_params:Callable, dim=1):
     p_simul_tanh = Simul_Params(T = 40, t_step=100, record_step=10, activation_func='tanh')
     p_simul_list = [('linear',p_simul_linear), ('tanh',p_simul_tanh)]
     trial_num_list = [3,5]
+
+    #calculate xlim and ylim
+    fig_lim_x_min, fig_lim_y_min, fig_lim_x_max, fig_lim_y_max= -1.1, -1.1, 1.1, 1.1
+    for trial in range(max(trial_num_list)):
+        p_net = generate_params(trial)
+        radius = calc_pred_radius(p_net,dim=dim)
+        lambda_list_pred_select, label_list_pred_select= calc_pred_outliers(p_net, dim=2)
+        real_part_pred_select, imag_part_pred_select = np.real(np.array(lambda_list_pred_select)), np.imag(np.array(lambda_list_pred_select))
+        fig_lim_x_min = min([fig_lim_x_min, -radius-0.1, np.min(real_part_pred_select)-0.1])
+        fig_lim_y_min = min([fig_lim_y_min, -radius-0.1, np.min(imag_part_pred_select)-0.1])
+        fig_lim_x_max = max([fig_lim_x_max, radius+0.1, np.max(real_part_pred_select)+0.1])
+        fig_lim_y_max = max([fig_lim_y_max, radius+0.1, np.max(imag_part_pred_select)+0.1])
+    fig_lim = max([fig_lim_x_max - fig_lim_x_min, fig_lim_y_max - fig_lim_y_min])
+    x_center, y_center = 0.5*(fig_lim_x_max + fig_lim_x_min), 0.5*(fig_lim_y_max + fig_lim_y_min)
+    fig_lim_x_min, fig_lim_x_max = x_center - 0.5 * fig_lim, x_center + 0.5 * fig_lim
+    fig_lim_y_min, fig_lim_y_max = y_center - 0.5 * fig_lim, y_center + 0.5 * fig_lim
+
     for simul_num in range(len(p_simul_list)):
         activation_func_str, p_simul  = p_simul_list[simul_num]
         for trial in trange(trial_num_list[simul_num]):
@@ -180,12 +197,15 @@ def product_dyn_simul_gif(file_name, generate_params:Callable, dim=1):
             real_part = np.real(eigs)
             imag_part = np.imag(eigs)
             plt.scatter(real_part, imag_part, s=3, c='none', marker='o', edgecolors='k')
+
+            plt.plot(np.ones(100), np.linspace(fig_lim_y_min, fig_lim_y_max, 100), color='gray', linestyle='--')
             
             ax = plt.gca()
+            ax.set_xlim((fig_lim_x_min, fig_lim_x_max))
             ax.set_xlabel("$Re(\\lambda)$", fontsize=15)
             ax.tick_params(axis='x', labelsize=15)  # 控制x轴刻度的字体大小
             ax.xaxis.set_major_locator(MaxNLocator(nbins=4)) 
-        
+            ax.set_ylim((fig_lim_y_min, fig_lim_y_max))
             ax.set_ylabel("$Im(\\lambda)$", fontsize=15)
             ax.tick_params(axis='y', labelsize=15)  # 控制y轴刻度的字体大小
             ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
