@@ -240,10 +240,11 @@ def generate_params_dyn_params_alpha(trial:int):
     rescale = 207.5
     alpha = 0.1
     N_E, N_I = 22500, 5625
+    d_EE, d_IE, d_EI, d_II = 0.05, 0.05, 0.05, 0.08
     conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
     J_EE, J_IE, J_EI, J_II = 5*200/(rescale*conn_NEE), 9*50/(rescale*conn_NIE), -9*200/(rescale*conn_NEI), -14*50/(rescale*conn_NII)
     sigma_EE, sigma_IE, sigma_EI, sigma_II = 0,0,0,0
-    d_EE, d_IE, d_EI, d_II = 0.05, 0.05, 0.05, 0.08
+    
 
     alpha_list = [0.1, 0.3, 0.5, 0.7, 0.9]
     alpha = alpha_list[trial]

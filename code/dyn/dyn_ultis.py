@@ -165,6 +165,8 @@ def product_dyn_simul_gif(file_name, generate_params:Callable, dim=1):
         p_net = generate_params(trial)
         radius = calc_pred_radius(p_net,dim=dim)
         lambda_list_pred_select, label_list_pred_select= calc_pred_outliers(p_net, dim=2)
+        if len(lambda_list_pred_select) == 0:
+            lambda_list_pred_select = [0]
         real_part_pred_select, imag_part_pred_select = np.real(np.array(lambda_list_pred_select)), np.imag(np.array(lambda_list_pred_select))
         fig_lim_x_min = min([fig_lim_x_min, -radius-0.1, np.min(real_part_pred_select)-0.1])
         fig_lim_y_min = min([fig_lim_y_min, -radius-0.1, np.min(imag_part_pred_select)-0.1])
