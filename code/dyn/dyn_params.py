@@ -223,7 +223,7 @@ def generate_params_dyn_params_g_bar(trial:int):
     sigma_EE, sigma_IE, sigma_EI, sigma_II = tuple(np.array([5/rescale, 9/rescale, -9/rescale, -14/rescale]) * sigma_rescale)
     d_EE, d_IE, d_EI, d_II = 0.05, 0.05, 0.05, 0.08
 
-    sigma_rescale_list = [0,4,8,12,16]
+    sigma_rescale_list = [0.8, 1.1, 1.4, 1.7, 2.0]
     sigma_rescale = sigma_rescale_list[trial]
     sigma_EE, sigma_IE, sigma_EI, sigma_II = tuple(np.array([5/rescale, 9/rescale, -9/rescale, -14/rescale]) * sigma_rescale)
     
@@ -246,9 +246,10 @@ def generate_params_dyn_params_alpha(trial:int):
     sigma_EE, sigma_IE, sigma_EI, sigma_II = 0,0,0,0
     
 
-    alpha_list = [0.1, 0.3, 0.5, 0.7, 0.9]
+    alpha_list = [0.1, 0.12, 0.15, 0.3, 0.8]
     alpha = alpha_list[trial]
     conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
+    J_EE, J_IE, J_EI, J_II = 5*200/(rescale*conn_NEE), 9*50/(rescale*conn_NIE), -9*200/(rescale*conn_NEI), -14*50/(rescale*conn_NII)
     
     p_net = Network_Params(N_E = N_E, N_I = N_I,
         N_EE = conn_NEE, N_IE = conn_NIE, N_EI = conn_NEI, N_II = conn_NII,

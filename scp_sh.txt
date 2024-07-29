@@ -1,0 +1,1 @@
+scp guozhang@slurmheadnode:/calc/guozhang/yuhan/spatial-linear-project/figs/dyn_eigs_params_* /f/markdown_params/
