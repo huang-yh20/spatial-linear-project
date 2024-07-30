@@ -219,7 +219,8 @@ def product_dyn_simul_gif(file_name, generate_params:Callable, dim=1):
 
             record_x = dyn_simul(p_net, p_simul, dim=dim)
             np.save(r'./data/'+'dyn_record_'+file_name+'_'+activation_func_str+str(trial), record_x)
-            product_gif(record_x, p_net, p_simul, 'dyn_gif_'+file_name+'_'+activation_func_str+str(trial), dim=dim)
+            product_gif(record_x, p_net, p_simul, 'dyn_gif_'+file_name+'_'+activation_func_str+str(trial), dim=dim, filter=False)
+            product_gif(record_x, p_net, p_simul, 'dyn_gif_smoothed_'+file_name+'_'+activation_func_str+str(trial), dim=dim, filter=True)
 
 def record_to_gif():
     p_simul_linear = Simul_Params(T = 40, t_step=100, record_step=10, activation_func='linear')
