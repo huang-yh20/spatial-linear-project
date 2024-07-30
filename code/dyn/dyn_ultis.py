@@ -217,7 +217,7 @@ def product_dyn_simul_gif(file_name, generate_params:Callable, dim=1):
             plt.savefig(r'./figs/'+'dyn_eigs_'+file_name+'_'+activation_func_str+str(trial), bbox_inches='tight')
             plt.close()
 
-            record_x = dyn_simul(p_net, p_simul)
+            record_x = dyn_simul(p_net, p_simul, dim=dim)
             np.save(r'./data/'+'dyn_record_'+file_name+'_'+activation_func_str+str(trial), record_x)
             product_gif(record_x, p_net, p_simul, 'dyn_gif_'+file_name+'_'+activation_func_str+str(trial), dim=dim)
 
