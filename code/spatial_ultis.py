@@ -135,7 +135,9 @@ def calc_pred_outliers(p:Network_Params, dim = 1):
     label_list_pred = []
 
     if dim == 1:
-        for n in range((p.N_E+p.N_I-2)//4):
+        #n_max = (p.N_E+p.N_I-2)//4
+        n_max = 40 #这个是临时的，但是是够用的
+        for n in range(n_max):
             eig_num = 1 if n == 0 else 2
             k = 2 * np.pi * n
             g_eff_EE_n = np.exp(-(k*p.d_EE)**2/2) * p.g_bar_EE
@@ -147,8 +149,10 @@ def calc_pred_outliers(p:Network_Params, dim = 1):
             lambda_list_pred += [0.5*(g_eff_EE_n+g_eff_II_n-np.emath.sqrt((g_eff_EE_n-g_eff_II_n)**2+4*g_eff_IE_n*g_eff_EI_n))] * eig_num
             label_list_pred += [(1,n)] * eig_num
     elif dim == 2:
-        for n_x in range(int(np.sqrt(p.N_E+p.N_I)//2)):
-            for n_y in range(int(np.sqrt(p.N_E+p.N_I)//2)):
+        #n_max = int(np.sqrt(p.N_E+p.N_I)//2)
+        n_max = 40 #这个是临时的，但是是够用的
+        for n_x in range(n_max):
+            for n_y in range(n_max):
                 eig_num = 1 if (n_x == 0 and n_y ==0) else 2
                 k = 2 * np.pi * np.sqrt(n_x **2 + n_y ** 2)
                 g_eff_EE_n = np.exp(-(k*p.d_EE)**2/2) * p.g_bar_EE
@@ -168,6 +172,45 @@ def calc_pred_outliers(p:Network_Params, dim = 1):
             label_list_pred_select.append(label_list_pred[i])
     
     return (lambda_list_pred_select,label_list_pred_select)
+
+#这个函数用于返回最大的理论特征以及它的标签，需要注意这个函数没有过滤掉小于半径的部分
+#希望能通过并行的方式大大加快速度
+def calc_max_theoried_lambda(p:Network_Params, dim = 1):
+    n_max, n_num = 40, 500
+
+    radius = calc_pred_radius(p,dim)
+
+    if dim == 1:
+        n_list = np.linspace(0, n_max, n_num)
+        k_list = 2 * np.pi * n_list
+    elif dim == 2:
+        n_list = np.linspace(0, n_max, n_num)
+        n_list_x, n_list_y = np.meshgrid(n_list, n_list)
+        n_list_abs = np.sqrt(n_list_x ** 2 + n_list_y ** 2)
+        k_list = 2 * np.pi * n_list_abs
+        
+    g_eff_EE_n = np.exp(-(k_list*p.d_EE)**2/2) * p.g_bar_EE
+    g_eff_IE_n = np.exp(-(k_list*p.d_IE)**2/2) * p.g_bar_IE
+    g_eff_EI_n = np.exp(-(k_list*p.d_EI)**2/2) * p.g_bar_EI
+    g_eff_II_n = np.exp(-(k_list*p.d_II)**2/2) * p.g_bar_II
+    lambda_list_pred_pos = 0.5*(g_eff_EE_n+g_eff_II_n+np.emath.sqrt((g_eff_EE_n-g_eff_II_n)**2+4*g_eff_IE_n*g_eff_EI_n))
+    lambda_list_pred_neg = 0.5*(g_eff_EE_n+g_eff_II_n-np.emath.sqrt((g_eff_EE_n-g_eff_II_n)**2+4*g_eff_IE_n*g_eff_EI_n))
+    
+    if dim == 1:
+        max_lambda_pos, max_label_pos = lambda_list_pred_pos[np.argmax(np.real(max_lambda_pos))], n_list[np.argmax(np.real(max_lambda_pos))]
+        max_lambda_neg, max_label_neg = lambda_list_pred_neg[np.argmax(np.real(max_lambda_neg))], n_list[np.argmax(np.real(max_lambda_neg))]
+        max_lambda, max_label = (max_lambda_pos, max_label_pos) if (np.real(max_lambda_pos) > np.real(max_lambda_neg)) else (max_lambda_neg, max_label_neg)
+    elif dim == 2:
+        max_n_x_pos_loc, max_n_y_pos_loc = np.where(np.real(lambda_list_pred_pos) == np.max(np.real(lambda_list_pred_pos)))
+        max_n_x_pos, max_n_y_pos = n_list[max_n_x_pos_loc[0]], n_list[max_n_y_pos_loc[0]]
+        max_lambda_pos = lambda_list_pred_pos[max_n_x_pos_loc[0], max_n_y_pos_loc[0]]
+        max_n_x_neg_loc, max_n_y_neg_loc = np.where(np.real(lambda_list_pred_neg) == np.max(np.real(lambda_list_pred_neg)))
+        max_n_x_neg, max_n_y_neg = n_list[max_n_x_neg_loc[0]], n_list[max_n_y_neg_loc[0]]
+        max_lambda_neg = lambda_list_pred_neg[max_n_x_neg_loc[0], max_n_y_neg_loc[0]]       
+        max_lambda, max_label = (max_lambda_pos, (0, max_n_x_pos, max_n_y_pos)) if (np.real(max_lambda_pos) > np.real(max_lambda_neg)) else (max_lambda_neg, (1, max_n_x_neg, max_n_y_neg))
+    return (max_lambda, max_label)
+    
+
 
 #这个函数用于返回圆形部分特征根
 def get_eigs_diskpart(eigs:list, lambda_list_pred_select:list, label_list_pred_select:list):
@@ -192,3 +235,17 @@ def find_points(points, target, find_num):
 #计算不同模式的简并重数，以下的函数只是部分正确，需要修改
 def degenerate_num(label):
     return 1 if all(x == 0 for x in label[1::]) else 2 * (len(label) - 1)
+
+def temp_plot_pred(p_net:Network_Params, dim=1):
+    radius = calc_pred_radius(p_net,dim=dim)
+    lambda_list_pred_select, label_list_pred_select  = calc_pred_outliers(p_net, dim=dim)
+    real_part_pred_select = np.real(lambda_list_pred_select)
+    imag_part_pred_select = np.imag(lambda_list_pred_select)
+
+    x_dots = np.linspace(-radius, radius, 200)
+    y_dots = np.sqrt(radius**2 - x_dots**2)
+
+    plt.plot(x_dots, y_dots, c='lightcoral', linewidth=1)
+    plt.plot(x_dots, -y_dots, c='lightcoral', linewidth=1)
+    plt.scatter(real_part_pred_select, imag_part_pred_select, s=30, c='lightcoral', marker='x')
+    plt.axis("equal")

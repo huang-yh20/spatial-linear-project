@@ -73,7 +73,6 @@ def generate_params_dyn_osc(trial:int):
 
 def generate_params_dyn_wave(trial:int):
     rescale = 830
-    rescale_list = list(rescale * [1/0.5, 1/0.75, 1, 1/1.25, 1/1.5])
     N_E, N_I = 22500, 5625
     conn_NEE, conn_NIE, conn_NEI, conn_NII = 800, 200, 800, 200
     J_EE, J_IE, J_EI, J_II = 5/rescale, 9/rescale, -9/rescale, -14/rescale
