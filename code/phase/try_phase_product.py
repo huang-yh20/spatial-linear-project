@@ -174,7 +174,7 @@ plt.close()
 mean_acti = np.zeros((trial_num, trial_num))
 for trial1 in trange(trial_num):
     for trial2 in trange(trial_num):
-        record_x = np.load(r"../../data/phase_dynrec_"+file_name+'_'+str(trail1)+'_'+str(trial2)+r'.npy')
+        record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trail1)+'_'+str(trial2)+r'.npy')
         mean_acti[trail1, trail2] = np.mean(np.abs(activation_func(record_x[t_step_onset::,0:p_net.N_E])))
 
 plt.imshow(mean_acti, origin='lower')
@@ -200,7 +200,7 @@ for trial1 in trange(trial_num):
         mean_sync_one_trial = []   
         for trial_random in range(random_num):
             loc_detech = np.random.randint(0, p_net.N_E)
-            record_x = np.load(r"../../data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+r'.npy')
+            record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+r'.npy')
             p_net = generate_params_phase_try(trial1, trial2)
             neibour_loc_list = find_neibour(p_net, loc_detech)
             record_x_detech = record_x[t_step_onset::, neibour_loc_list]
@@ -229,7 +229,7 @@ for trial1 in trange(trial_num):
     for trial2 in range(trial_num):
         mean_sync_one_trial = []   
         for trial_random in range(random_num):
-            record_x = np.load(r"../../data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+r'.npy')
+            record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+r'.npy')
             p_net = generate_params_phase_try(trial1, trial2)
             mean_sync_one_trial.append(np.mean(np.abs(np.sum(record_x, axis=1))/np.sum(np.abs(record_x), axis=1)))
     mean_sync[trail1,trail2] = np.mean(np.array(mean_sync_one_trial))
