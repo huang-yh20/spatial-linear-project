@@ -41,10 +41,20 @@ def generate_params_phase_try(trial1:int, trial2:int, trial_num=21):
     return p_net  
 
 generate_phase_params = generate_params_phase_try
+T, t_step, record_step = 40, 100, 10
+p_simul = Simul_Params(T = T, t_step=t_step, record_step=record_step, activation_func='tanh')
+if p_simul.activation_func == "linear":
+    activation_func = activation_func_linear
+elif p_simul.activation_func == "tanh":
+    activation_func = activation_func_tanh
+
 file_name = 'try'
 trial_num = 21
+t_step_onset = 100
+random_num = 1
 changed_parmas = ['d_II', 'g_bar_EE']
 changed_parmas_latex = [r'$d_{II}$', r'$\bar{g}_{EE}$']
+
 showed_ticks = [0, (trial_num-1)//2, trial_num-1]
 ylabels = [(generate_phase_params(ticks,0))._asdict()[changed_parmas[0]] for ticks in showed_ticks]
 xlabels = [(generate_phase_params(0,ticks))._asdict()[changed_parmas[1]] for ticks in showed_ticks]
@@ -157,6 +167,86 @@ plt.xticks(ticks=showed_ticks, labels=xlabels,fontsize=15)
 
 plt.tight_layout()
 plt.savefig("./figs/phase_"+file_name+"_conn_freq.png")
+cb.remove()
+plt.close()
+
+#magnitude of neural activity
+mean_acti = np.zeros((trial_num, trial_num))
+for trial1 in trange(trial_num):
+    for trial2 in trange(trial_num):
+        record_x = np.load(r"../../data/phase_dynrec_"+file_name+'_'+str(trail1)+'_'+str(trial2)+r'.npy')
+        mean_acti[trail1, trail2] = np.mean(np.abs(activation_func(record_x[t_step_onset::,0:p_net.N_E])))
+
+plt.imshow(mean_acti, origin='lower')
+cb = plt.colorbar()
+cb.locator = MaxNLocator(nbins=5)
+cb.ax.tick_params(labelsize=15)
+cb.update_ticks()
+
+plt.ylabel(changed_parmas_latex[0],fontsize=15)
+plt.xlabel(changed_parmas_latex[1],fontsize=15)
+plt.yticks(ticks=showed_ticks, labels=ylabels,fontsize=15)
+plt.xticks(ticks=showed_ticks, labels=xlabels,fontsize=15)
+
+plt.tight_layout()
+plt.savefig("./figs/phase_"+file_name+"_acti.png")
+cb.remove()
+plt.close()
+
+#local sync
+mean_sync = np.zeros((trial_num, trial_num))
+for trial1 in trange(trial_num):
+    for trial2 in range(trial_num):
+        mean_sync_one_trial = []   
+        for trial_random in range(random_num):
+            loc_detech = np.random.randint(0, p_net.N_E)
+            record_x = np.load(r"../../data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+r'.npy')
+            p_net = generate_params_phase_try(trial1, trial2)
+            neibour_loc_list = find_neibour(p_net, loc_detech)
+            record_x_detech = record_x[t_step_onset::, neibour_loc_list]
+            mean_sync_one_trial.append(np.mean(np.abs(np.sum(record_x_detech, axis=1))/np.sum(np.abs(record_x_detech), axis=1)))
+    mean_sync[trail1,trail2] = np.mean(np.array(mean_sync_one_trial))
+
+plt.imshow(mean_sync, origin='lower')
+cb = plt.colorbar()
+cb.locator = MaxNLocator(nbins=5)
+cb.ax.tick_params(labelsize=15)
+cb.update_ticks()
+
+plt.ylabel(changed_parmas_latex[0],fontsize=15)
+plt.xlabel(changed_parmas_latex[1],fontsize=15)
+plt.yticks(ticks=showed_ticks, labels=ylabels,fontsize=15)
+plt.xticks(ticks=showed_ticks, labels=xlabels,fontsize=15)
+
+plt.tight_layout()
+plt.savefig("./figs/phase_"+file_name+"_local_sync.png")
+cb.remove()
+plt.close()
+
+#global sync
+mean_sync = np.zeros((trial_num, trial_num))
+for trial1 in trange(trial_num):
+    for trial2 in range(trial_num):
+        mean_sync_one_trial = []   
+        for trial_random in range(random_num):
+            record_x = np.load(r"../../data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+r'.npy')
+            p_net = generate_params_phase_try(trial1, trial2)
+            mean_sync_one_trial.append(np.mean(np.abs(np.sum(record_x, axis=1))/np.sum(np.abs(record_x), axis=1)))
+    mean_sync[trail1,trail2] = np.mean(np.array(mean_sync_one_trial))
+
+plt.imshow(mean_sync, origin='lower')
+cb = plt.colorbar()
+cb.locator = MaxNLocator(nbins=5)
+cb.ax.tick_params(labelsize=15)
+cb.update_ticks()
+
+plt.ylabel(changed_parmas_latex[0],fontsize=15)
+plt.xlabel(changed_parmas_latex[1],fontsize=15)
+plt.yticks(ticks=showed_ticks, labels=ylabels,fontsize=15)
+plt.xticks(ticks=showed_ticks, labels=xlabels,fontsize=15)
+
+plt.tight_layout()
+plt.savefig("./figs/phase_"+file_name+"_global_sync.png")
 cb.remove()
 plt.close()
 

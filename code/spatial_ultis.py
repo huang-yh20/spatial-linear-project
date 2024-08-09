@@ -249,3 +249,16 @@ def temp_plot_pred(p_net:Network_Params, dim=1):
     plt.plot(x_dots, -y_dots, c='lightcoral', linewidth=1)
     plt.scatter(real_part_pred_select, imag_part_pred_select, s=30, c='lightcoral', marker='x')
     plt.axis("equal")
+
+#这是一个临时版本，只能处理恰好是整数的状态
+def find_neibour(p_net: Network_Params, loc:int, radius:int = 6, dim:int = 1):
+    if dim == 1:
+        neuro_num = np.arange(0, p_net.N_E)
+        neibour_loc_list = np.arange(loc - radius, loc + radius + 1) % p_net.N_E
+    if dim == 2:
+        neuro_num = (np.arange(0, p_net.N_E)).reshape(int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))
+        loc_x, loc_y = loc % int(np.ceil(np.sqrt(p_net.N_E))), loc // int(np.ceil(np.sqrt(p_net.N_E)))
+        neibour_loc_x = np.arange(loc_x - radius, loc_x + radius + 1) % int(np.ceil(np.sqrt(p_net.N_E)))
+        neibour_loc_y = np.arange(loc_y - radius, loc_y + radius + 1) % int(np.ceil(np.sqrt(p_net.N_E)))
+        neibour_loc_list = neuro_num[np.ix_(neibour_loc_y, neibour_loc_x)].reshape(-1)
+    return neibour_loc_list
