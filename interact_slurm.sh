@@ -1,0 +1,1 @@
+salloc --partition=IGIcrunchers --exclusive

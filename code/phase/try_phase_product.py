@@ -62,24 +62,24 @@ xlabels = [(generate_phase_params(0,ticks))._asdict()[changed_parmas[1]] for tic
 phase_diagram = np.full((trial_num, trial_num), np.nan)
 wavenum_diagram = np.zeros((trial_num, trial_num))
 freq_diagram = np.zeros((trial_num, trial_num))
-for trail1 in trange(trial_num):
-    for trail2 in range(trial_num):
-        p_net = generate_params_phase_try(trail1, trail2)
+for trial1 in trange(trial_num):
+    for trial2 in range(trial_num):
+        p_net = generate_params_phase_try(trial1, trial2)
         radius = calc_pred_radius(p_net, dim=2)
         lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net, dim=2)
         real_part_pred_select = np.real(lambda_list_pred_select)
         imag_part_pred_select = np.imag(lambda_list_pred_select)
         if radius >= 1:
-            phase_diagram[trail1, trail2] = 0.5
+            phase_diagram[trial1, trial2] = 0.5
         elif len(lambda_list_pred_select) != 0:
             max_real_index = np.argmax(real_part_pred_select)
             wavenum = label_list_pred_select[max_real_index]
-            wavenum_diagram[trail1, trail2] = np.sqrt(wavenum[1]**2 + wavenum[2]**2)
-            freq_diagram[trail1, trail2] = np.abs(imag_part_pred_select[max_real_index])/(2*np.pi)
+            wavenum_diagram[trial1, trial2] = np.sqrt(wavenum[1]**2 + wavenum[2]**2)
+            freq_diagram[trial1, trial2] = np.abs(imag_part_pred_select[max_real_index])/(2*np.pi)
             if (real_part_pred_select[max_real_index] < 1):
-                phase_diagram[trail1, trail2] = 1
+                phase_diagram[trial1, trial2] = 1
         else:
-            phase_diagram[trail1, trail2] = 1
+            phase_diagram[trial1, trial2] = 1
 
 plt.imshow(wavenum_diagram, origin='lower')
 cb = plt.colorbar()
@@ -121,18 +121,18 @@ plt.close()
 phase_diagram = np.full((trial_num, trial_num), np.nan)
 wavenum_diagram = np.zeros((trial_num, trial_num))
 freq_diagram = np.zeros((trial_num, trial_num))
-for trail1 in trange(trial_num):
-    for trail2 in range(trial_num):
-        p_net = generate_params_phase_try(trail1, trail2)
+for trial1 in trange(trial_num):
+    for trial2 in range(trial_num):
+        p_net = generate_params_phase_try(trial1, trial2)
         radius = calc_pred_radius(p_net, dim=2)
         if radius >= 1:
-            phase_diagram[trail1, trail2] = 0.5
+            phase_diagram[trial1, trial2] = 0.5
         else:
             max_lambda, wavenum = calc_max_theoried_lambda(p_net, dim=2)
-            wavenum_diagram[trail1, trail2] = np.sqrt(wavenum[1]**2 + wavenum[2]**2)
-            freq_diagram[trail1, trail2] = np.abs(np.imag(max_lambda))/(2*np.pi)
+            wavenum_diagram[trial1, trial2] = np.sqrt(wavenum[1]**2 + wavenum[2]**2)
+            freq_diagram[trial1, trial2] = np.abs(np.imag(max_lambda))/(2*np.pi)
             if (np.real(max_lambda) < 1):
-                phase_diagram[trail1, trail2] = 1
+                phase_diagram[trial1, trial2] = 1
 
 plt.imshow(wavenum_diagram, origin='lower')
 cb = plt.colorbar()
@@ -173,9 +173,9 @@ plt.close()
 #magnitude of neural activity
 mean_acti = np.zeros((trial_num, trial_num))
 for trial1 in trange(trial_num):
-    for trial2 in trange(trial_num):
-        record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trail1)+'_'+str(trial2)+r'.npy')
-        mean_acti[trail1, trail2] = np.mean(np.abs(activation_func(record_x[t_step_onset::,0:p_net.N_E])))
+    for trial2 in range(trial_num):
+        record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+r'.npy')
+        mean_acti[trial1, trial2] = np.mean(np.abs(activation_func(record_x[t_step_onset::,0:p_net.N_E])))
 
 plt.imshow(mean_acti, origin='lower')
 cb = plt.colorbar()
@@ -204,8 +204,8 @@ for trial1 in trange(trial_num):
             p_net = generate_params_phase_try(trial1, trial2)
             neibour_loc_list = find_neibour(p_net, loc_detech)
             record_x_detech = record_x[t_step_onset::, neibour_loc_list]
-            mean_sync_one_trial.append(np.mean(np.abs(np.sum(record_x_detech, axis=1))/np.sum(np.abs(record_x_detech), axis=1)))
-    mean_sync[trail1,trail2] = np.mean(np.array(mean_sync_one_trial))
+            mean_sync_one_trial.append(np.mean(np.abs(np.sum(activation_func(record_x_detech), axis=1))/np.sum(np.abs(activation_func(record_x_detech)), axis=1)))
+        mean_sync[trial1,trial2] = np.mean(np.array(mean_sync_one_trial))
 
 plt.imshow(mean_sync, origin='lower')
 cb = plt.colorbar()
@@ -231,8 +231,8 @@ for trial1 in trange(trial_num):
         for trial_random in range(random_num):
             record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+r'.npy')
             p_net = generate_params_phase_try(trial1, trial2)
-            mean_sync_one_trial.append(np.mean(np.abs(np.sum(record_x, axis=1))/np.sum(np.abs(record_x), axis=1)))
-    mean_sync[trail1,trail2] = np.mean(np.array(mean_sync_one_trial))
+            mean_sync_one_trial.append(np.mean(np.abs(np.sum(activation_func(record_x), axis=1))/np.sum(np.abs(activation_func(record_x)), axis=1)))
+        mean_sync[trial1,trial2] = np.mean(np.array(mean_sync_one_trial))
 
 plt.imshow(mean_sync, origin='lower')
 cb = plt.colorbar()
