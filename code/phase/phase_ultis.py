@@ -1,0 +1,240 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pickle as pk
+import scipy.sparse as spa
+import scipy.sparse.linalg as spalin
+from tqdm import trange
+import matplotlib.colors as mcolors
+from matplotlib.ticker import MaxNLocator
+from typing import NamedTuple, Union, Callable, List
+import imageio
+import sys
+sys.path.append("./code")
+from spatial_ultis import *
+sys.path.append("./code/dyn/")
+from dyn_ultis import *
+
+def plot_phase_diagram_axis_default(changed_params:str, changed_params_latex:str, generate_phase_params:callable, trial_num:int = 21):
+    showed_ticks = [0, (trial_num-1)//2, trial_num-1]
+    ylabels = [(generate_phase_params(ticks,0,trial_num))._asdict()[changed_params[0]] for ticks in showed_ticks]
+    xlabels = [(generate_phase_params(0,ticks,trial_num))._asdict()[changed_params[1]] for ticks in showed_ticks]
+
+    plt.ylabel(changed_params_latex[0],fontsize=15)
+    plt.xlabel(changed_params_latex[1],fontsize=15)
+    plt.yticks(ticks=showed_ticks, labels=ylabels,fontsize=15)
+    plt.xticks(ticks=showed_ticks, labels=xlabels,fontsize=15)
+
+def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default):
+    activation_func_dict = {"linear": activation_func_linear, "tanh":activation_func_tanh, "rectified_linear_lowthres":activation_func_rectified_linear_lowthres, "rectified_linear_highthres":activation_func_rectified_linear_highthres}
+    if type(p_simul.activation_func) == str:
+        activation_func_list = [activation_func_dict[p_simul.activation_func], activation_func_dict[p_simul.activation_func]]
+    elif type(p_simul.activation_func) == list:
+        activation_func_list = [activation_func_dict[p_simul.activation_func[0]], activation_func_dict[p_simul.activation_func[1]]]
+
+    #this function can only be used in calculating the record_x
+    def calc_activated_x(x):
+        activated_x_E = activation_func_list[0](x[:,0:p_net.N_E])
+        activated_x_I = activation_func_list[1](x[:,p_net.N_E:p_net.N_E+p_net.N_I])
+        activated_x = np.concatenate((activated_x_E,activated_x_I))
+        return activated_x
+   
+    t_step_onset = p_simul.record_step * 1
+    random_num = 1
+
+    phase_diagram = np.full((trial_num, trial_num), np.nan)
+    wavenum_diagram = np.zeros((trial_num, trial_num))
+    freq_diagram = np.zeros((trial_num, trial_num))
+    for trial1 in trange(trial_num):
+        for trial2 in range(trial_num):
+            p_net = generate_phase_params(trial1, trial2, trial_num)
+            radius = calc_pred_radius(p_net, dim=2)
+            lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net, dim=2)
+            real_part_pred_select = np.real(lambda_list_pred_select)
+            imag_part_pred_select = np.imag(lambda_list_pred_select)
+            if radius >= 1:
+                phase_diagram[trial1, trial2] = 0.5
+            elif len(lambda_list_pred_select) != 0:
+                max_real_index = np.argmax(real_part_pred_select)
+                wavenum = label_list_pred_select[max_real_index]
+                wavenum_diagram[trial1, trial2] = np.sqrt(wavenum[1]**2 + wavenum[2]**2)
+                freq_diagram[trial1, trial2] = np.abs(imag_part_pred_select[max_real_index])/(2*np.pi)
+                if (real_part_pred_select[max_real_index] < 1):
+                    phase_diagram[trial1, trial2] = 1
+            else:
+                phase_diagram[trial1, trial2] = 1
+
+    plt.imshow(wavenum_diagram, origin='lower')
+    cb = plt.colorbar()
+    cb.locator = MaxNLocator(nbins=5)
+    cb.ax.tick_params(labelsize=15)
+    cb.update_ticks()
+    norm = mcolors.Normalize(vmin=0, vmax=1)
+    plt.imshow(phase_diagram, cmap='gray', norm=norm, origin='lower')
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+
+    plt.tight_layout()
+    plt.savefig("./figs/phase_"+file_name+"_wavenum.png")
+    plt.close()
+
+    plt.imshow(freq_diagram, origin='lower')
+    cb = plt.colorbar()
+    cb.locator = MaxNLocator(nbins=5)
+    cb.ax.tick_params(labelsize=15)
+    cb.update_ticks()
+    norm = mcolors.Normalize(vmin=0, vmax=1)
+    plt.imshow(phase_diagram, cmap='gray', norm=norm, origin='lower')
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+
+    plt.tight_layout()
+    plt.savefig("./figs/phase_"+file_name+"_freq_theo.png")
+    plt.close()
+
+
+    phase_diagram = np.full((trial_num, trial_num), np.nan)
+    wavenum_diagram = np.zeros((trial_num, trial_num))
+    freq_diagram = np.zeros((trial_num, trial_num))
+    for trial1 in trange(trial_num):
+        for trial2 in range(trial_num):
+            p_net = generate_phase_params(trial1, trial2, trial_num)
+            radius = calc_pred_radius(p_net, dim=2)
+            if radius >= 1:
+                phase_diagram[trial1, trial2] = 0.5
+            else:
+                max_lambda, wavenum = calc_max_theoried_lambda(p_net, dim=2)
+                wavenum_diagram[trial1, trial2] = np.sqrt(wavenum[1]**2 + wavenum[2]**2)
+                freq_diagram[trial1, trial2] = np.abs(np.imag(max_lambda))/(2*np.pi)
+                if (np.real(max_lambda) < 1):
+                    phase_diagram[trial1, trial2] = 1
+
+    plt.imshow(wavenum_diagram, origin='lower')
+    cb = plt.colorbar()
+    cb.locator = MaxNLocator(nbins=5)
+    cb.ax.tick_params(labelsize=15)
+    cb.update_ticks()
+    norm = mcolors.Normalize(vmin=0, vmax=1)
+    plt.imshow(phase_diagram, cmap='gray', norm=norm, origin='lower')
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+
+    plt.tight_layout()
+    plt.savefig("./figs/phase_"+file_name+"_conn_wavenum.png")
+    cb.remove()
+    plt.close()
+
+    plt.imshow(freq_diagram, origin='lower')
+    cb = plt.colorbar()
+    cb.locator = MaxNLocator(nbins=5)
+    cb.ax.tick_params(labelsize=15)
+    cb.update_ticks()
+    norm = mcolors.Normalize(vmin=0, vmax=1)
+    plt.imshow(phase_diagram, cmap='gray', norm=norm, origin='lower')
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+
+    plt.tight_layout()
+    plt.savefig("./figs/phase_"+file_name+"_conn_freq.png")
+    cb.remove()
+    plt.close()
+
+    #magnitude of neural activity
+    mean_acti_all_repeat = np.zeros((trial_num, trial_num))
+    for repeat_trial in range(repeat_num):
+        for trial1 in trange(trial_num):
+            for trial2 in range(trial_num):
+                record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
+                activated_x = calc_activated_x(record_x)
+                mean_acti_all_repeat[repeat_trial, trial1, trial2] = np.mean(np.abs(activated_x[t_step_onset::,0:p_net.N_E]))
+    mean_acti = np.mean(mean_acti_all_repeat, axis=0)
+    plt.imshow(mean_acti, origin='lower')
+    cb = plt.colorbar()
+    cb.locator = MaxNLocator(nbins=5)
+    cb.ax.tick_params(labelsize=15)
+    cb.update_ticks()
+
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+
+    plt.tight_layout()
+    plt.savefig("./figs/phase_"+file_name+"_acti.png")
+    plt.close()
+
+    #local sync
+    mean_sync_all = np.zeros((repeat_num, trial_num, trial_num))
+    for repeat_trial in range(repeat_num):
+        for trial1 in trange(trial_num):
+            for trial2 in range(trial_num):
+                mean_sync_one_trial = []   
+                for trial_random in range(random_num):
+                    loc_detech = np.random.randint(0, p_net.N_E)
+                    record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
+                    activated_x = calc_activated_x(record_x)
+                    p_net = generate_phase_params(trial1, trial2, trial_num)
+                    neibour_loc_list = find_neibour(p_net, loc_detech)
+                    record_x_detech = activated_x[t_step_onset::, neibour_loc_list]
+                    mean_sync_one_trial.append(np.mean(np.abs(np.sum((record_x_detech), axis=1))/np.sum(np.abs((record_x_detech)), axis=1)))
+                mean_sync_all[repeat_trial, trial1, trial2] = np.mean(np.array(mean_sync_one_trial))
+    mean_sync = np.mean(mean_sync_all, axis=0)
+    plt.imshow(mean_sync, origin='lower')
+    cb = plt.colorbar()
+    cb.locator = MaxNLocator(nbins=5)
+    cb.ax.tick_params(labelsize=15)
+    cb.update_ticks()
+
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+
+    plt.tight_layout()
+    plt.savefig("./figs/phase_"+file_name+"_local_sync.png")
+    plt.close()
+
+    #global sync
+    mean_sync_all = np.zeros((repeat_num, trial_num, trial_num))
+    for repeat_trial in range(repeat_num):
+        for trial1 in trange(trial_num):
+            for trial2 in range(trial_num):
+                mean_sync_one_trial = []   
+                for trial_random in range(random_num):
+                    record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
+                    activated_x = calc_activated_x(record_x)
+                    p_net = generate_phase_params(trial1, trial2, trial_num)
+                    mean_sync_one_trial.append(np.mean(np.abs(np.sum(activated_x, axis=1))/np.sum(np.abs(activated_x), axis=1)))
+                mean_sync[trial1,trial2] = np.mean(np.array(mean_sync_one_trial))
+
+    plt.imshow(mean_sync, origin='lower')
+    cb = plt.colorbar()
+    cb.locator = MaxNLocator(nbins=5)
+    cb.ax.tick_params(labelsize=15)
+    cb.update_ticks()
+
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+
+    plt.tight_layout()
+    plt.savefig("./figs/phase_"+file_name+"_global_sync.png")
+    plt.close()
+
+    mean_freq = np.zeros((trial_num, trial_num))
+    for trial1 in trange(trial_num):
+        for trial2 in range(trial_num):
+            freq_list = []
+            for repeat_trial in range(repeat_num):
+                record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
+                activated_x = calc_activated_x(record_x)  
+                for trial_random in range(random_num):
+                    loc_detech = np.random.randint(0, p_net.N_E)
+                    sp_activated_x = np.abs(np.fft.fft(activated_x[t_step_onset::,loc_detech]))
+                    freq_sp = np.fft.fftfreq(np.shape(activated_x[t_step_onset::,loc_detech])[0], 1/p_simul.record_step)
+                    freq_list.append(np.abs(freq_sp[np.argmax(np.abs(sp_activated_x))]))
+            if freq_list.count(0) >= (0.5 * repeat_num * random_num):
+                mean_freq[trial1, trial2] = 0
+            else:
+                mean_freq[trial1, trial2] = np.mean(np.array(freq_list))
+    
+    plt.imshow(mean_freq, origin='lower')
+    cb = plt.colorbar()
+    cb.locator = MaxNLocator(nbins=5)
+    cb.ax.tick_params(labelsize=15)
+    cb.update_ticks()
+
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+
+    plt.tight_layout()
+    plt.savefig("./figs/phase_"+file_name+"_freq_exp.png")
+    plt.close()
+
+

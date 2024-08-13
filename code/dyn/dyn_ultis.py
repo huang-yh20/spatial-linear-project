@@ -7,7 +7,7 @@ from tqdm import trange
 import matplotlib.colors as mcolors
 from matplotlib.ticker import MaxNLocator
 import imageio
-from typing import NamedTuple, Union, Callable
+from typing import NamedTuple, Union, Callable, List
 import sys
 sys.path.append("./code/")
 from spatial_ultis import *
@@ -17,7 +17,7 @@ class Simul_Params(NamedTuple):
     T: Union[int, float]
     t_step: int
     record_step: int
-    activation_func: str = "linear"
+    activation_func: Union[str, List[str]] = "linear"
     external_input: str = "noise" 
 
 #以下是激活函数
@@ -26,16 +26,23 @@ def activation_func_tanh(x):
     return max_firing_rate*np.tanh(x/max_firing_rate)
 def activation_func_linear(x):
     return x
+def activation_func_rectified_linear_lowthres(x):
+    max_firing_rate = 1
+    return np.minimum(max_firing_rate, np.maximum(-max_firing_rate, x))
+def activation_func_rectified_linear_highthres(x):
+    max_firing_rate = 5
+    return np.minimum(max_firing_rate, np.maximum(-max_firing_rate, x))
+activation_func_dict = {"linear": activation_func_linear, "tanh":activation_func_tanh, "rectified_linear_lowthres":activation_func_rectified_linear_lowthres, "rectified_linear_highthres":activation_func_rectified_linear_highthres}
 
 #以下是外界输入，返回一个tuple，代表非噪声项和噪声项
 def external_input_noise(t, p_net:Network_Params):
     return (0, 0.1*np.random.randn(p_net.N_E+p_net.N_I))
 
 def dyn_simul(p_net:Network_Params, p_simul:Simul_Params, dim=1):
-    if p_simul.activation_func == "linear":
-        activation_func = activation_func_linear
-    elif p_simul.activation_func == "tanh":
-        activation_func = activation_func_tanh
+    if type(p_simul.activation_func) == str:
+        activation_func_list = [activation_func_dict[p_simul.activation_func], activation_func_dict[p_simul.activation_func]]
+    elif type(p_simul.activation_func) == list:
+        activation_func_list = [activation_func_dict[p_simul.activation_func[0]], activation_func_dict[p_simul.activation_func[1]]]
 
     external_input = external_input_noise
 
@@ -48,7 +55,10 @@ def dyn_simul(p_net:Network_Params, p_simul:Simul_Params, dim=1):
     for step in trange(p_simul.T*p_simul.t_step):
         external_input_tuple = external_input(step/p_simul.t_step, p_net)
         x *= np.exp(-1/p_simul.t_step)
-        x += J_spa @ activation_func(x)/ p_simul.t_step + external_input_tuple[0] / p_simul.t_step + external_input_tuple[1] * np.sqrt(1/p_simul.t_step) 
+        activated_x_E = activation_func_list[0](x[0:p_net.N_E])
+        activated_x_I = activation_func_list[1](x[p_net.N_E:p_net.N_E+p_net.N_I])
+        activated_x = np.concatenate((activated_x_E,activated_x_I))
+        x += J_spa @ activated_x/ p_simul.t_step + external_input_tuple[0] / p_simul.t_step + external_input_tuple[1] * np.sqrt(1/p_simul.t_step) 
         if step % p_simul.record_step == 0:
             record_x.append(x.copy())
     record_x = np.array(record_x)
@@ -59,11 +69,14 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
     p_net = p_net if p_net != None else generate_params_default(2)
     p_simul = p_simul if p_simul != None else Simul_Params(T = 40, t_step=100, record_step=10, activation_func='linear')
     
-    if p_simul.activation_func == "linear":
-        activation_func = activation_func_linear
-    elif p_simul.activation_func == "tanh":
-        activation_func = activation_func_tanh
-    record_x = activation_func(record_x)
+    if type(p_simul.activation_func) == str:
+        activation_func_list = [activation_func_dict[p_simul.activation_func], activation_func_dict[p_simul.activation_func]]
+    elif type(p_simul.activation_func) == list:
+        activation_func_list = [activation_func_dict[p_simul.activation_func[0]], activation_func_dict[p_simul.activation_func[1]]]
+
+    activated_x_E = activation_func_list[0](record_x[:,0:p_net.N_E])
+    activated_x_I = activation_func_list[0](record_x[:,p_net.N_E:p_net.N_E+p_net.N_I])
+    record_x = np.concatenate((activated_x_E,activated_x_I),axis=1)
 
     frames = []
     scale_max = np.max(record_x)
