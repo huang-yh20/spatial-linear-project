@@ -35,12 +35,12 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     def calc_activated_x(x):
         activated_x_E = activation_func_list[0](x[:,0:p_net.N_E])
         activated_x_I = activation_func_list[1](x[:,p_net.N_E:p_net.N_E+p_net.N_I])
-        activated_x = np.concatenate((activated_x_E,activated_x_I))
+        activated_x = np.concatenate((activated_x_E,activated_x_I), axis=1)
         return activated_x
    
     t_step_onset = p_simul.record_step * 1
-    random_num = 1
-    trial_num_theo = 201
+    random_num = 3
+    trial_num_theo = 101
 
     phase_diagram = np.full((trial_num_theo, trial_num_theo), np.nan)
     wavenum_diagram = np.zeros((trial_num_theo, trial_num_theo))
@@ -136,7 +136,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     plt.close()
 
     #magnitude of neural activity
-    mean_acti_all_repeat = np.zeros((trial_num, trial_num))
+    mean_acti_all_repeat = np.zeros((repeat_num, trial_num, trial_num))
     for repeat_trial in range(repeat_num):
         for trial1 in trange(trial_num):
             for trial2 in range(trial_num):
