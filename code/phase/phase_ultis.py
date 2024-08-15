@@ -40,13 +40,14 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
    
     t_step_onset = p_simul.record_step * 1
     random_num = 1
+    trial_num_theo = 201
 
-    phase_diagram = np.full((trial_num, trial_num), np.nan)
-    wavenum_diagram = np.zeros((trial_num, trial_num))
-    freq_diagram = np.zeros((trial_num, trial_num))
-    for trial1 in trange(trial_num):
-        for trial2 in range(trial_num):
-            p_net = generate_phase_params(trial1, trial2, trial_num)
+    phase_diagram = np.full((trial_num_theo, trial_num_theo), np.nan)
+    wavenum_diagram = np.zeros((trial_num_theo, trial_num_theo))
+    freq_diagram = np.zeros((trial_num_theo, trial_num_theo))
+    for trial1 in trange(trial_num_theo):
+        for trial2 in range(trial_num_theo):
+            p_net = generate_phase_params(trial1, trial2, trial_num_theo)
             radius = calc_pred_radius(p_net, dim=2)
             lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net, dim=2)
             real_part_pred_select = np.real(lambda_list_pred_select)
@@ -70,7 +71,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     cb.update_ticks()
     norm = mcolors.Normalize(vmin=0, vmax=1)
     plt.imshow(phase_diagram, cmap='gray', norm=norm, origin='lower')
-    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num_theo)
 
     plt.tight_layout()
     plt.savefig("./figs/phase_"+file_name+"_wavenum.png")
@@ -83,19 +84,19 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     cb.update_ticks()
     norm = mcolors.Normalize(vmin=0, vmax=1)
     plt.imshow(phase_diagram, cmap='gray', norm=norm, origin='lower')
-    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num_theo)
 
     plt.tight_layout()
     plt.savefig("./figs/phase_"+file_name+"_freq_theo.png")
     plt.close()
 
 
-    phase_diagram = np.full((trial_num, trial_num), np.nan)
-    wavenum_diagram = np.zeros((trial_num, trial_num))
-    freq_diagram = np.zeros((trial_num, trial_num))
-    for trial1 in trange(trial_num):
-        for trial2 in range(trial_num):
-            p_net = generate_phase_params(trial1, trial2, trial_num)
+    phase_diagram = np.full((trial_num_theo, trial_num_theo), np.nan)
+    wavenum_diagram = np.zeros((trial_num_theo, trial_num_theo))
+    freq_diagram = np.zeros((trial_num_theo, trial_num_theo))
+    for trial1 in trange(trial_num_theo):
+        for trial2 in range(trial_num_theo):
+            p_net = generate_phase_params(trial1, trial2, trial_num_theo)
             radius = calc_pred_radius(p_net, dim=2)
             if radius >= 1:
                 phase_diagram[trial1, trial2] = 0.5
@@ -113,7 +114,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     cb.update_ticks()
     norm = mcolors.Normalize(vmin=0, vmax=1)
     plt.imshow(phase_diagram, cmap='gray', norm=norm, origin='lower')
-    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num_theo)
 
     plt.tight_layout()
     plt.savefig("./figs/phase_"+file_name+"_conn_wavenum.png")
@@ -127,7 +128,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     cb.update_ticks()
     norm = mcolors.Normalize(vmin=0, vmax=1)
     plt.imshow(phase_diagram, cmap='gray', norm=norm, origin='lower')
-    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num_theo)
 
     plt.tight_layout()
     plt.savefig("./figs/phase_"+file_name+"_conn_freq.png")
@@ -208,6 +209,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     plt.savefig("./figs/phase_"+file_name+"_global_sync.png")
     plt.close()
 
+    #simul freq
     mean_freq = np.zeros((trial_num, trial_num))
     for trial1 in trange(trial_num):
         for trial2 in range(trial_num):
@@ -223,7 +225,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
             if freq_list.count(0) >= (0.5 * repeat_num * random_num):
                 mean_freq[trial1, trial2] = 0
             else:
-                mean_freq[trial1, trial2] = np.mean(np.array(freq_list))
+                mean_freq[trial1, trial2] = np.mean(np.array(freq_list))  * (len(mean_freq)/(len(mean_freq) - freq_list.count(0)))
     
     plt.imshow(mean_freq, origin='lower')
     cb = plt.colorbar()
@@ -236,5 +238,38 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     plt.tight_layout()
     plt.savefig("./figs/phase_"+file_name+"_freq_exp.png")
     plt.close()
+
+    #simul wavenum
+    mean_wavenum = np.zeros((trial_num, trial_num))
+    for trial1 in trange(trial_num):
+        for trial2 in range(trial_num):
+            wavenum_list = []
+            for repeat_trial in range(repeat_num):
+                record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
+                activated_x = calc_activated_x(record_x)  
+                for trial_random in range(random_num):
+                    time_detech = np.random.randint(t_step_onset, np.shape(record_x)[0])
+                    sp_activated_x = np.abs(np.fft.fft2((activated_x[time_detech,0:p_net.N_E]).reshape((int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))))
+                    sp_activated_x = sp_activated_x[0:int(p_net.N_E//2), 0:int(p_net.N_E//2)]
+                    max_wavenum_tuple = np.where(sp_activated_x == np.max(sp_activated_x))
+                    max_wavenum = np.sqrt(max_wavenum_tuple[0][0]**2 + max_wavenum_tuple[1][0]**2)
+                    wavenum_list.append(max_wavenum)
+            if wavenum_list.count(0) >= (0.5 * repeat_num * random_num):
+                mean_wavenum[trial1, trial2] = 0
+            else:
+                mean_wavenum[trial1, trial2] = np.mean(np.array(wavenum_list)) * (len(mean_wavenum)/(len(mean_wavenum) - wavenum_list.count(0)))
+    
+    plt.imshow(mean_wavenum, origin='lower')
+    cb = plt.colorbar()
+    cb.locator = MaxNLocator(nbins=5)
+    cb.ax.tick_params(labelsize=15)
+    cb.update_ticks()
+
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+
+    plt.tight_layout()
+    plt.savefig("./figs/phase_"+file_name+"_wavenum_exp.png")
+    plt.close()
+
 
 
