@@ -3,6 +3,7 @@ import numpy as np
 import pickle as pk
 import scipy.sparse as spa
 import scipy.sparse.linalg as spalin
+from scipy.ndimage import convolve
 from tqdm import trange
 import matplotlib.colors as mcolors
 from matplotlib.ticker import MaxNLocator
@@ -14,6 +15,7 @@ from spatial_ultis import *
 sys.path.append("./code/dyn/")
 from dyn_ultis import *
 
+#注意我很多坐标轴都设成0到1，所以发放率最大也要是1
 def plot_phase_diagram_axis_default(changed_params:str, changed_params_latex:str, generate_phase_params:callable, trial_num:int = 21):
     showed_ticks = [0, (trial_num-1)//2, trial_num-1]
     ylabels = [(generate_phase_params(ticks,0,trial_num))._asdict()[changed_params[0]] for ticks in showed_ticks]
@@ -41,6 +43,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     t_step_onset = p_simul.record_step * 1
     random_num = 3
     trial_num_theo = 101
+    moran_radius = 5
 
     phase_diagram = np.full((trial_num_theo, trial_num_theo), np.nan)
     wavenum_diagram = np.zeros((trial_num_theo, trial_num_theo))
@@ -144,9 +147,10 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                 activated_x = calc_activated_x(record_x)
                 mean_acti_all_repeat[repeat_trial, trial1, trial2] = np.mean(np.abs(activated_x[t_step_onset::,0:p_net.N_E]))
     mean_acti = np.mean(mean_acti_all_repeat, axis=0)
-    plt.imshow(mean_acti, origin='lower')
+    plt.imshow(mean_acti, origin='lower', vmin=0, vmax=1)
     cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=5)
+    cb.set_ticks([0, 0.5, 1])
+    cb.set_ticklabels(['0', '0.5', '1'])
     cb.ax.tick_params(labelsize=15)
     cb.update_ticks()
 
@@ -172,9 +176,10 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                     mean_sync_one_trial.append(np.mean(np.abs(np.sum((record_x_detech), axis=1))/np.sum(np.abs((record_x_detech)), axis=1)))
                 mean_sync_all[repeat_trial, trial1, trial2] = np.mean(np.array(mean_sync_one_trial))
     mean_sync = np.mean(mean_sync_all, axis=0)
-    plt.imshow(mean_sync, origin='lower')
+    plt.imshow(mean_sync, origin='lower', vmin=0, vmax=1)
     cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=5)
+    cb.set_ticks([0, 0.5, 1])
+    cb.set_ticklabels(['0', '0.5', '1'])
     cb.ax.tick_params(labelsize=15)
     cb.update_ticks()
 
@@ -197,9 +202,10 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                     mean_sync_one_trial.append(np.mean(np.abs(np.sum(activated_x, axis=1))/np.sum(np.abs(activated_x), axis=1)))
                 mean_sync[trial1,trial2] = np.mean(np.array(mean_sync_one_trial))
 
-    plt.imshow(mean_sync, origin='lower')
+    plt.imshow(mean_sync, origin='lower', vmin=0, vmax=1)
     cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=5)
+    cb.set_ticks([0, 0.5, 1])
+    cb.set_ticklabels(['0', '0.5', '1'])
     cb.ax.tick_params(labelsize=15)
     cb.update_ticks()
 
@@ -227,7 +233,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
             else:
                 mean_freq[trial1, trial2] = np.mean(np.array(freq_list))  * (len(mean_freq)/(len(mean_freq) - freq_list.count(0)))
     
-    plt.imshow(mean_freq, origin='lower')
+    plt.imshow(mean_freq, origin='lower', vmin=0)
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -259,7 +265,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
             else:
                 mean_wavenum[trial1, trial2] = np.mean(np.array(wavenum_list)) * (len(mean_wavenum)/(len(mean_wavenum) - wavenum_list.count(0)))
     
-    plt.imshow(mean_wavenum, origin='lower')
+    plt.imshow(mean_wavenum, origin='lower', vmin=0)
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -270,6 +276,43 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     plt.tight_layout()
     plt.savefig("./figs/phase_"+file_name+"_wavenum_exp.png")
     plt.close()
+
+    mean_moran = np.zeros((trial_num, trial_num))
+    weight_matrix = np.zeros((2*moran_radius+1, 2*moran_radius+1))
+    weight_matrix[moran_radius+1, moran_radius+1] = 1 
+    for trial1 in trange(trial_num):
+        for trial2 in range(trial_num):
+            moran_list = []
+            for repeat_trial in range(repeat_num):
+                record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
+                activated_x = calc_activated_x(record_x)  
+                for trial_random in range(random_num):
+                    time_detech = np.random.randint(t_step_onset, np.shape(activated_x)[0])
+                    activated_x_E_t = (activated_x[time_detech,0:p_net.N_E]).reshape((int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
+                    centralized_activated_x_E_t = activated_x_E_t - np.mean(activated_x_E_t)
+                    local_sum = convolve(centralized_activated_x_E_t, weight_matrix, mode='wrap')
+
+                    numerator = np.sum(centralized_activated_x_E_t * local_sum)
+                    denominator = np.sum(centralized_activated_x_E_t ** 2)
+                    moran_index = (centralized_activated_x_E_t.size / np.sum(weight_matrix)) * (numerator / denominator)
+                    moran_list.append(moran_index)
+            mean_moran[trial1, trial2] = np.mean(np.array(moran_list))
+
+    plt.imshow(mean_moran, origin='lower', vmin=0, vmax=1)
+    cb = plt.colorbar()
+    cb.set_ticks([0, 0.5, 1])
+    cb.set_ticklabels(['0', '0.5', '1'])
+    cb.ax.tick_params(labelsize=15)
+    cb.update_ticks()
+
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+
+    plt.tight_layout()
+    plt.savefig("./figs/phase_"+file_name+"_moran.png")
+    plt.close()
+   
+    
+
 
 
 

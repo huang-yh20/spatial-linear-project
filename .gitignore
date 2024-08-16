@@ -3,3 +3,5 @@
 *.jpg
 *.npy
 *.pkl
+*.err
+*.out
