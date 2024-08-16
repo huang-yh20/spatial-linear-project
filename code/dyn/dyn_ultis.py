@@ -23,7 +23,7 @@ class Simul_Params(NamedTuple):
 #以下是激活函数
 def activation_func_tanh(x):
     max_firing_rate = 1
-    return max_firing_rate*np.tanh(x/max_firing_rate)
+    return max_firing_rate*(np.tanh(x/max_firing_rate).astype(np.float32))
 def activation_func_linear(x):
     return x
 def activation_func_rectified_linear_lowthres(x):
@@ -36,7 +36,7 @@ activation_func_dict = {"linear": activation_func_linear, "tanh":activation_func
 
 #以下是外界输入，返回一个tuple，代表非噪声项和噪声项
 def external_input_noise(t, p_net:Network_Params):
-    return (0, 0.1*np.random.randn(p_net.N_E+p_net.N_I))
+    return (0, 0.1*(np.random.randn(p_net.N_E+p_net.N_I).astype(np.float32)))
 
 def dyn_simul(p_net:Network_Params, p_simul:Simul_Params, dim=1):
     if type(p_simul.activation_func) == str:
@@ -47,21 +47,21 @@ def dyn_simul(p_net:Network_Params, p_simul:Simul_Params, dim=1):
     external_input = external_input_noise
 
     dist_list = calc_dist(p_net, dim = dim)
-    J = generate_net(p_net, dist_list)
+    J = (generate_net(p_net, dist_list)).astype(np.float32)
     J_spa = spa.csr_matrix(J)
     x = np.zeros((p_net.N_E+p_net.N_I,))
     
     record_x = []
     for step in trange(p_simul.T*p_simul.t_step):
         external_input_tuple = external_input(step/p_simul.t_step, p_net)
-        x *= np.exp(-1/p_simul.t_step)
+        x *= np.exp(-1/p_simul.t_step).astype(np.float32)
         activated_x_E = activation_func_list[0](x[0:p_net.N_E])
         activated_x_I = activation_func_list[1](x[p_net.N_E:p_net.N_E+p_net.N_I])
         activated_x = np.concatenate((activated_x_E,activated_x_I))
-        x += J_spa @ activated_x/ p_simul.t_step + external_input_tuple[0] / p_simul.t_step + external_input_tuple[1] * np.sqrt(1/p_simul.t_step) 
+        x += J_spa @ activated_x/ p_simul.t_step + external_input_tuple[0] / p_simul.t_step + external_input_tuple[1] * np.sqrt(1/p_simul.t_step).astype(np.float32) 
         if step % p_simul.record_step == 0:
             record_x.append(x.copy())
-    record_x = np.array(record_x)
+    record_x = np.array(record_x,dtype=np.float32)
 
     return record_x
 
