@@ -294,14 +294,15 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
 
                     numerator = np.sum(centralized_activated_x_E_t * local_sum)
                     denominator = np.sum(centralized_activated_x_E_t ** 2)
-                    moran_index = (centralized_activated_x_E_t.size / np.sum(weight_matrix)) * (numerator / denominator)
+                    moran_index = (centralized_activated_x_E_t.size / (p_net.N_E * np.sum(weight_matrix))) * (numerator / denominator)
                     moran_list.append(moran_index)
             mean_moran[trial1, trial2] = np.mean(np.array(moran_list))
 
-    plt.imshow(mean_moran, origin='lower', vmin=0, vmax=1)
+    norm = mcolors.TwoSlopeNorm(vmin=-1, vcenter=0, vmax=1)
+    plt.imshow(mean_moran, origin='lower', norm=norm, cmap=plt.cm.RdBu)
     cb = plt.colorbar()
-    cb.set_ticks([0, 0.5, 1])
-    cb.set_ticklabels(['0', '0.5', '1'])
+    cb.set_ticks([-1, 0, 1])
+    cb.set_ticklabels(['-1', '0', '1'])
     cb.ax.tick_params(labelsize=15)
     cb.update_ticks()
 
