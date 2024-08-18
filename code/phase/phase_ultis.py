@@ -39,12 +39,29 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
         activated_x_I = activation_func_list[1](x[:,p_net.N_E:p_net.N_E+p_net.N_I])
         activated_x = np.concatenate((activated_x_E,activated_x_I), axis=1)
         return activated_x
-   
+    
+    #calculate the phase boundary
+    def plot_phase_boundary(radius_list, max_real_list, wavenum_diagram, freq_diagram, trial_num_theo, trial_num=21, plot_list=[True,True,True,True]):
+        eps = 0.001
+        x = np.linspace(0, trial_num_theo, trial_num)
+        y = np.linspace(0, trial_num_theo, trial_num)
+        X, Y = np.meshgrid(x, y)
+        if plot_list[0]:
+            plt.contour(X, Y, radius_list, levels=[1], colors='orange', linestyles='--')
+        if plot_list[1]:
+            plt.contour(X, Y, max_real_list, levels=[1], colors='green', linestyles='--')
+        if plot_list[2]:
+            plt.contour(X, Y, wavenum_diagram, levels=[eps], colors='blue', linestyles='--')
+        if plot_list[3]:
+            plt.contour(X, Y, freq_diagram, levels=[eps], colors='cyan', linestyles='--')
+
     t_step_onset = p_simul.record_step * 1
-    random_num = 3
-    trial_num_theo = 101
+    random_num = 5
+    trial_num_theo = 21
     moran_radius = 5
 
+    radius_list = np.zeros((trial_num_theo, trial_num_theo))
+    max_real_list = np.zeros((trial_num_theo, trial_num_theo))
     phase_diagram = np.full((trial_num_theo, trial_num_theo), np.nan)
     wavenum_diagram = np.zeros((trial_num_theo, trial_num_theo))
     freq_diagram = np.zeros((trial_num_theo, trial_num_theo))
@@ -52,9 +69,11 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
         for trial2 in range(trial_num_theo):
             p_net = generate_phase_params(trial1, trial2, trial_num_theo)
             radius = calc_pred_radius(p_net, dim=2)
+            radius_list[trial1, trial2] = radius
             lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net, dim=2)
             real_part_pred_select = np.real(lambda_list_pred_select)
             imag_part_pred_select = np.imag(lambda_list_pred_select)
+            max_real_list[trial1, trial2] = real_part_pred_select[np.argmax(real_part_pred_select)]
             if radius >= 1:
                 phase_diagram[trial1, trial2] = 0.5
             elif len(lambda_list_pred_select) != 0:
@@ -155,7 +174,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     cb.update_ticks()
 
     plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-
+    plot_phase_boundary(radius_list, max_real_list, wavenum_diagram, freq_diagram, trial_num_theo, trial_num, plot_list=[True,True,False,False])
     plt.tight_layout()
     plt.savefig("./figs/phase_"+file_name+"_acti.png")
     plt.close()
@@ -184,7 +203,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     cb.update_ticks()
 
     plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-
+    plot_phase_boundary(radius_list, max_real_list, wavenum_diagram, freq_diagram, trial_num_theo, trial_num, plot_list=[True,True,False,False])
     plt.tight_layout()
     plt.savefig("./figs/phase_"+file_name+"_local_sync.png")
     plt.close()
@@ -210,7 +229,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     cb.update_ticks()
 
     plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-
+    plot_phase_boundary(radius_list, max_real_list, wavenum_diagram, freq_diagram, trial_num_theo, trial_num, plot_list=[True,True,True,False])
     plt.tight_layout()
     plt.savefig("./figs/phase_"+file_name+"_global_sync.png")
     plt.close()
@@ -240,7 +259,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     cb.update_ticks()
 
     plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-
+    plot_phase_boundary(radius_list, max_real_list, wavenum_diagram, freq_diagram, trial_num_theo, trial_num, plot_list=[True,True,False,True])
     plt.tight_layout()
     plt.savefig("./figs/phase_"+file_name+"_freq_exp.png")
     plt.close()
@@ -272,7 +291,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     cb.update_ticks()
 
     plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-
+    plot_phase_boundary(radius_list, max_real_list, wavenum_diagram, freq_diagram, trial_num_theo, trial_num, plot_list=[True,True,True,False])
     plt.tight_layout()
     plt.savefig("./figs/phase_"+file_name+"_wavenum_exp.png")
     plt.close()
@@ -307,7 +326,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     cb.update_ticks()
 
     plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-
+    plot_phase_boundary(radius_list, max_real_list, wavenum_diagram, freq_diagram, trial_num_theo, trial_num, plot_list=[True,True,True,False])
     plt.tight_layout()
     plt.savefig("./figs/phase_"+file_name+"_moran.png")
     plt.close()
