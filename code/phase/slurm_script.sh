@@ -17,4 +17,4 @@ cd ../..
 trial1=$TRIAL1
 trial2=$TRIAL2
 
-python ./code/phase/phase_dyn_try.py $trial1 $trial2
+python ./code/phase/phase_dyn_all.py $trial1 $trial2
