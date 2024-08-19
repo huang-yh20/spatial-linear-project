@@ -44,8 +44,8 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     #calculate the phase boundary
     def plot_phase_boundary(radius_list, max_real_list, wavenum_diagram, freq_diagram, trial_num_theo, trial_num=21, plot_list=[True,True,True,True]):
         eps = 0.001
-        x = np.linspace(0, trial_num_theo, trial_num-1)
-        y = np.linspace(0, trial_num_theo, trial_num-1)
+        x = np.linspace(0, trial_num-1, trial_num_theo)
+        y = np.linspace(0, trial_num-1, trial_num_theo)
         X, Y = np.meshgrid(x, y)
         if plot_list[0]:
             plt.contour(X, Y, radius_list, levels=[1], colors='gray', linestyles='--')
@@ -58,7 +58,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
 
     t_step_onset = p_simul.record_step * 1
     random_num = 5
-    trial_num_theo = 61
+    trial_num_theo = 21
     moran_radius = 5
 
     radius_list = np.zeros((trial_num_theo, trial_num_theo))
@@ -87,7 +87,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
             else:
                 phase_diagram[trial1, trial2] = 1
 
-    plt.imshow(wavenum_diagram, origin='lower', cmap='Blues')
+    plt.imshow(wavenum_diagram, origin='lower', cmap='GnBu')
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -100,7 +100,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     plt.savefig("./figs/phase_"+file_name+"_wavenum.png")
     plt.close()
 
-    plt.imshow(freq_diagram, origin='lower', cmap='Blues')
+    plt.imshow(freq_diagram, origin='lower', cmap='GnBu')
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -130,7 +130,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                 if (np.real(max_lambda) < 1):
                     phase_diagram[trial1, trial2] = 1
 
-    plt.imshow(wavenum_diagram, origin='lower', cmap='Blues')
+    plt.imshow(wavenum_diagram, origin='lower', cmap='GnBu')
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -144,7 +144,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     cb.remove()
     plt.close()
 
-    plt.imshow(freq_diagram, origin='lower', cmap='Blues')
+    plt.imshow(freq_diagram, origin='lower', cmap='GnBu')
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -167,7 +167,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                 activated_x = calc_activated_x(record_x)
                 mean_acti_all_repeat[repeat_trial, trial1, trial2] = np.mean(np.abs(activated_x[t_step_onset::,0:p_net.N_E]))
     mean_acti = np.mean(mean_acti_all_repeat, axis=0)
-    plt.imshow(mean_acti, origin='lower', cmap='Blues', vmin=0, vmax=1)
+    plt.imshow(mean_acti, origin='lower', cmap='GnBu', vmin=0, vmax=1)
     cb = plt.colorbar()
     cb.set_ticks([0, 0.5, 1])
     cb.set_ticklabels(['0', '0.5', '1'])
@@ -192,10 +192,9 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                 activated_x_E_2d = activated_x.reshape((np.shape(activated_x)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
                 local_sum = convolve(activated_x_E_2d, weight_matrix, mode='wrap')
                 local_abs_sum = convolve(np.abs(activated_x_E_2d), weight_matrix, mode='wrap')
-                mean_sync_one_trial.append(np.mean(local_sum/local_abs_sum))
-                mean_sync_all[repeat_trial, trial1, trial2] = np.mean(np.array(mean_sync_one_trial))
+            mean_sync_all[repeat_trial, trial1, trial2] = np.mean(np.abs(local_sum/(local_abs_sum +1e-9)))
     mean_sync = np.mean(mean_sync_all, axis=0)
-    plt.imshow(mean_sync, origin='lower', cmap='Blues', vmin=0, vmax=1)
+    plt.imshow(mean_sync, origin='lower', cmap='GnBu', vmin=0, vmax=1)
     cb = plt.colorbar()
     cb.set_ticks([0, 0.5, 1])
     cb.set_ticklabels(['0', '0.5', '1'])
@@ -218,9 +217,9 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                 activated_x = calc_activated_x(record_x)
                 p_net = generate_phase_params(trial1, trial2, trial_num)
                 mean_sync_one_trial.append(np.mean(np.abs(np.sum(activated_x, axis=1))/np.sum(np.abs(activated_x), axis=1)))
-            mean_sync[trial1,trial2] = np.mean(np.array(mean_sync_one_trial))
+            mean_sync[trial1,trial2] = np.mean(np.abs(np.array(mean_sync_one_trial)))
 
-    plt.imshow(mean_sync, origin='lower', cmap='Blues', vmin=0, vmax=1)
+    plt.imshow(mean_sync, origin='lower', cmap='GnBu', vmin=0, vmax=1)
     cb = plt.colorbar()
     cb.set_ticks([0, 0.5, 1])
     cb.set_ticklabels(['0', '0.5', '1'])
@@ -240,18 +239,18 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
             freq_list = []
             for repeat_trial in range(repeat_num):
                 record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
-                activated_x = calc_activated_x(record_x)  
-                for trial_random in range(random_num):
-                    loc_detech = np.random.randint(0, p_net.N_E)
-                    sp_activated_x = np.abs(np.fft.fft(activated_x[t_step_onset::,loc_detech]))
-                    freq_sp = np.fft.fftfreq(np.shape(activated_x[t_step_onset::,loc_detech])[0], 1/p_simul.record_step)
-                    freq_list.append(np.abs(freq_sp[np.argmax(np.abs(sp_activated_x))]))
+                activated_x = calc_activated_x(record_x)                   
+                sp_activated_x = np.abs(np.fft.fft(activated_x[t_step_onset::,:], axis=0))
+                freq_sp = np.fft.fftfreq(np.shape(activated_x[t_step_onset::,:])[0], 1/(p_simul.t_step/p_simul.record_step))
+                sp_mean = np.mean(sp_activated_x, axis=1)
+                freq_list.append(np.abs(freq_sp[np.argmax(sp_mean)]))
+
             if freq_list.count(0) >= (0.5 * repeat_num * random_num):
                 mean_freq[trial1, trial2] = 0
             else:
                 mean_freq[trial1, trial2] = np.mean(np.array(freq_list))  * (len(mean_freq)/(len(mean_freq) - freq_list.count(0)))
     
-    plt.imshow(mean_freq, origin='lower', cmap='Blues', vmin=0)
+    plt.imshow(mean_freq, origin='lower', cmap='GnBu', vmin=0)
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -270,20 +269,20 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
             wavenum_list = []
             for repeat_trial in range(repeat_num):
                 record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
-                activated_x = calc_activated_x(record_x)  
-                for trial_random in range(random_num):
-                    time_detech = np.random.randint(t_step_onset, np.shape(record_x)[0])
-                    sp_activated_x = np.abs(np.fft.fft2((activated_x[time_detech,0:p_net.N_E]).reshape((int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))))
-                    sp_activated_x = sp_activated_x[0:int(p_net.N_E//2), 0:int(p_net.N_E//2)]
-                    max_wavenum_tuple = np.where(sp_activated_x == np.max(sp_activated_x))
-                    max_wavenum = np.sqrt(max_wavenum_tuple[0][0]**2 + max_wavenum_tuple[1][0]**2)
-                    wavenum_list.append(max_wavenum)
+                activated_x = calc_activated_x(record_x)    
+                activated_x_2d = activated_x[t_step_onset::,0:p_net.N_E].reshape((np.shape(activated_x)[0] - t_step_onset, int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
+                sp_activated_x = np.abs(np.fft.fft2(activated_x_2d))
+                sp_mean = np.mean(sp_activated_x, axis=0)
+                sp_mean = sp_mean[0:int(p_net.N_E//2), 0:int(p_net.N_E//2)]
+                max_wavenum_tuple = np.where(sp_mean == np.max(sp_mean))
+                max_wavenum = np.sqrt(max_wavenum_tuple[0][0]**2 + max_wavenum_tuple[1][0]**2)
+                wavenum_list.append(max_wavenum)
             if wavenum_list.count(0) >= (0.5 * repeat_num * random_num):
                 mean_wavenum[trial1, trial2] = 0
             else:
                 mean_wavenum[trial1, trial2] = np.mean(np.array(wavenum_list)) * (len(mean_wavenum)/(len(mean_wavenum) - wavenum_list.count(0)))
     
-    plt.imshow(mean_wavenum, origin='lower', cmap='Blues', vmin=0)
+    plt.imshow(mean_wavenum, origin='lower', cmap='GnBu', vmin=0)
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -304,7 +303,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
             for repeat_trial in range(repeat_num):
                 record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
                 activated_x_E = (calc_activated_x(record_x))[t_step_onset::,0:p_net.N_E]
-                centralized_activated_x_E = activated_x_E - np.mean(activated_x_E, axis=1)
+                centralized_activated_x_E = activated_x_E - np.mean(activated_x_E, axis=1)[:,np.newaxis]
                 centralized_activated_x_E_2d = centralized_activated_x_E.reshape((np.shape(centralized_activated_x_E)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
                 local_sum = convolve(centralized_activated_x_E_2d, weight_matrix, mode='wrap')
                 numerator = np.sum(centralized_activated_x_E_2d * local_sum, axis=(1,2))
@@ -315,7 +314,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
             mean_moran[trial1, trial2] = np.mean(np.array(moran_list))
 
     norm = mcolors.TwoSlopeNorm(vmin=-1, vcenter=0, vmax=1)
-    plt.imshow(mean_moran, origin='lower', cmap='Blues', norm=norm, cmap=plt.cm.RdBu)
+    plt.imshow(mean_moran, origin='lower', norm=norm, cmap=plt.cm.RdBu)
     cb = plt.colorbar()
     cb.set_ticks([-1, 0, 1])
     cb.set_ticklabels(['-1', '0', '1'])
