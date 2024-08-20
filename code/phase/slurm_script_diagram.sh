@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH -e diag.err
-#SBATCH -o diag.out
+#SBATCH -e diagall.err
+#SBATCH -o diagall.out
 #SBATCH -J spatial-linear
 
 #SBATCH --partition=IGIpcluster
@@ -14,7 +14,6 @@
 
 ###
 cd ../..
-trial1=$TRIAL1
-trial2=$TRIAL2
+trial=$TRIAL
 
-python ./code/phase/phase_dyn_all.py $trial1 $trial2
+python ./code/phase/phase_diagram_all.py $trial

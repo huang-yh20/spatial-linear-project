@@ -56,7 +56,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
         if plot_list[3]:
             plt.contour(X, Y, freq_diagram, levels=[eps], colors='red', linestyles='--')
 
-    t_step_onset = p_simul.record_step * 1
+    t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1
     random_num = 5
     trial_num_theo = 21
     moran_radius = 5
@@ -74,7 +74,10 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
             lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net, dim=2)
             real_part_pred_select = np.real(lambda_list_pred_select)
             imag_part_pred_select = np.imag(lambda_list_pred_select)
-            max_real_list[trial1, trial2] = real_part_pred_select[np.argmax(real_part_pred_select)]
+            if len(lambda_list_pred_select) != 0:
+                max_real_list[trial1, trial2] = real_part_pred_select[np.argmax(real_part_pred_select)]
+            else: 
+                max_real_list[trial1, trial2] = 0
             if radius >= 1:
                 phase_diagram[trial1, trial2] = 0.5
             elif len(lambda_list_pred_select) != 0:
