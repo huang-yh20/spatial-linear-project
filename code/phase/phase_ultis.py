@@ -57,7 +57,6 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
             plt.contour(X, Y, freq_diagram, levels=[eps], colors='red', linestyles='--')
 
     t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1
-    random_num = 5
     trial_num_theo = 21
     moran_radius = 5
 
@@ -90,7 +89,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
             else:
                 phase_diagram[trial1, trial2] = 1
 
-    plt.imshow(wavenum_diagram, origin='lower', cmap='GnBu')
+    plt.imshow(wavenum_diagram, origin='lower', cmap='viridis')
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -103,7 +102,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     plt.savefig("./figs/phase_"+file_name+"_wavenum.png")
     plt.close()
 
-    plt.imshow(freq_diagram, origin='lower', cmap='GnBu')
+    plt.imshow(freq_diagram, origin='lower', cmap='viridis')
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -133,7 +132,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                 if (np.real(max_lambda) < 1):
                     phase_diagram[trial1, trial2] = 1
 
-    plt.imshow(wavenum_diagram, origin='lower', cmap='GnBu')
+    plt.imshow(wavenum_diagram, origin='lower', cmap='viridis')
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -147,7 +146,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     cb.remove()
     plt.close()
 
-    plt.imshow(freq_diagram, origin='lower', cmap='GnBu')
+    plt.imshow(freq_diagram, origin='lower', cmap='viridis')
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -170,7 +169,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                 activated_x = calc_activated_x(record_x)
                 mean_acti_all_repeat[repeat_trial, trial1, trial2] = np.mean(np.abs(activated_x[t_step_onset::,0:p_net.N_E]))
     mean_acti = np.mean(mean_acti_all_repeat, axis=0)
-    plt.imshow(mean_acti, origin='lower', cmap='GnBu', vmin=0, vmax=1)
+    plt.imshow(mean_acti, origin='lower', cmap='viridis', vmin=0, vmax=1)
     cb = plt.colorbar()
     cb.set_ticks([0, 0.5, 1])
     cb.set_ticklabels(['0', '0.5', '1'])
@@ -197,7 +196,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                 local_abs_sum = convolve(np.abs(activated_x_E_2d), weight_matrix, mode='wrap')
             mean_sync_all[repeat_trial, trial1, trial2] = np.mean(np.abs(local_sum/(local_abs_sum +1e-9)))
     mean_sync = np.mean(mean_sync_all, axis=0)
-    plt.imshow(mean_sync, origin='lower', cmap='GnBu', vmin=0, vmax=1)
+    plt.imshow(mean_sync, origin='lower', cmap='viridis', vmin=0, vmax=1)
     cb = plt.colorbar()
     cb.set_ticks([0, 0.5, 1])
     cb.set_ticklabels(['0', '0.5', '1'])
@@ -218,11 +217,10 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
             for repeat_trial in range(repeat_num):              
                 record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
                 activated_x = calc_activated_x(record_x)
-                p_net = generate_phase_params(trial1, trial2, trial_num)
                 mean_sync_one_trial.append(np.mean(np.abs(np.sum(activated_x, axis=1))/np.sum(np.abs(activated_x), axis=1)))
             mean_sync[trial1,trial2] = np.mean(np.abs(np.array(mean_sync_one_trial)))
 
-    plt.imshow(mean_sync, origin='lower', cmap='GnBu', vmin=0, vmax=1)
+    plt.imshow(mean_sync, origin='lower', cmap='viridis', vmin=0, vmax=1)
     cb = plt.colorbar()
     cb.set_ticks([0, 0.5, 1])
     cb.set_ticklabels(['0', '0.5', '1'])
@@ -248,12 +246,12 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                 sp_mean = np.mean(sp_activated_x, axis=1)
                 freq_list.append(np.abs(freq_sp[np.argmax(sp_mean)]))
 
-            if freq_list.count(0) >= (0.5 * repeat_num * random_num):
+            if freq_list.count(0) >= (0.5 * repeat_num):
                 mean_freq[trial1, trial2] = 0
             else:
                 mean_freq[trial1, trial2] = np.mean(np.array(freq_list))  * (len(mean_freq)/(len(mean_freq) - freq_list.count(0)))
     
-    plt.imshow(mean_freq, origin='lower', cmap='GnBu', vmin=0)
+    plt.imshow(mean_freq, origin='lower', cmap='viridis', vmin=0)
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -280,12 +278,12 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                 max_wavenum_tuple = np.where(sp_mean == np.max(sp_mean))
                 max_wavenum = np.sqrt(max_wavenum_tuple[0][0]**2 + max_wavenum_tuple[1][0]**2)
                 wavenum_list.append(max_wavenum)
-            if wavenum_list.count(0) >= (0.5 * repeat_num * random_num):
+            if wavenum_list.count(0) >= (0.5 * repeat_num):
                 mean_wavenum[trial1, trial2] = 0
             else:
                 mean_wavenum[trial1, trial2] = np.mean(np.array(wavenum_list)) * (len(mean_wavenum)/(len(mean_wavenum) - wavenum_list.count(0)))
     
-    plt.imshow(mean_wavenum, origin='lower', cmap='GnBu', vmin=0)
+    plt.imshow(mean_wavenum, origin='lower', cmap='viridis', vmin=0)
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
@@ -330,8 +328,110 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     plt.savefig("./figs/phase_"+file_name+"_moran.png")
     plt.close()
    
+
     
 
 
+def plot_phase_diagram1p(file_name:str, changed_params_value:tuple, changed_params_latex:str, generate_phase_params1p:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1):
+    p_net = generate_phase_params1p(0, trial_num)
+    activation_func_dict = {"linear": activation_func_linear, "tanh":activation_func_tanh, "rectified_linear_lowthres":activation_func_rectified_linear_lowthres, "rectified_linear_highthres":activation_func_rectified_linear_highthres}
+    if type(p_simul.activation_func) == str:
+        activation_func_list = [activation_func_dict[p_simul.activation_func], activation_func_dict[p_simul.activation_func]]
+    elif type(p_simul.activation_func) == list:
+        activation_func_list = [activation_func_dict[p_simul.activation_func[0]], activation_func_dict[p_simul.activation_func[1]]]
+
+    #this function can only be used in calculating the record_x
+    def calc_activated_x(x):
+        activated_x_E = activation_func_list[0](x[:,0:p_net.N_E])
+        activated_x_I = activation_func_list[1](x[:,p_net.N_E:p_net.N_E+p_net.N_I])
+        activated_x = np.concatenate((activated_x_E,activated_x_I), axis=1)
+        return activated_x
+    
+    t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1
+    trial_num_theo = 101
+    moran_radius = 5
 
 
+
+    radius_list = []
+    max_real_list = []
+    for trial in range(trial_num_theo):
+        p_net = generate_phase_params1p(trial, trial_num_theo)
+        radius_list.append(calc_pred_radius(p_net,dim=2)) 
+        lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net, dim=2)
+        real_part_pred_select = np.real(lambda_list_pred_select)
+        if len(lambda_list_pred_select) != 0:
+            max_real_list.append(real_part_pred_select[np.argmax(real_part_pred_select)])
+        else: 
+            max_real_list.append(0)
+    #find params that radius=1 
+    params_value_chaos_trans_list = [] 
+    for trial in range(trial_num_theo-1):
+        if (radius_list[trial] - 1) * (radius_list[trial+1] - 1) <= 0:
+            params_value_chaos_trans = changed_params_value[0] * (trial/(trial_num_theo-1)) + changed_params_value[1] * ((trial_num_theo-1-trial)/(trial_num_theo-1))
+            params_value_chaos_trans_list.append(params_value_chaos_trans)
+    for params_value_chaos_trans in params_value_chaos_trans_list:
+        plt.axvline(params_value_chaos_trans, linestyle='--', color='gray')
+    #find params that radius = real(max(lambda))
+    if max(max_real_list) > 1:
+        params_value_chaos_trans_list = []
+        for trial in range(trial_num_theo-1):
+            if (radius_list[trial] - max_real_list[trial]) * (radius_list[trial+1] - max_real_list[trial]) <= 0:
+                params_value_chaos_trans = changed_params_value[0] * (trial/(trial_num_theo-1)) + changed_params_value[1] * ((trial_num_theo-1-trial)/(trial_num_theo-1))
+                params_value_chaos_trans_list.append(params_value_chaos_trans)
+        for params_value_chaos_trans in params_value_chaos_trans_list:
+            plt.axvline(params_value_chaos_trans, linestyle='--', color='blue')
+
+
+    #calc local_sync, moran_index, mean_acti, todo:freq
+    mean_sync_all, moran_index_all, mean_acti_all = np.zeros((repeat_num, trial_num)), np.zeros((repeat_num, trial_num)), np.zeros((repeat_num, trial_num))
+    weight_matrix = np.ones((2*moran_radius+1, 2*moran_radius+1))
+    weight_matrix = weight_matrix[np.newaxis, :, :]
+    for trial in trange(trial_num):
+        for repeat_trial in range(repeat_num):
+            record_x = np.load(r"./data/phase_dynrec_"+file_name+'_'+str(trial)+'_'+str(repeat_trial)+r'.npy')
+            activated_x = calc_activated_x(record_x)[t_step_onset::,0:p_net.N_E]
+
+            #local sync
+            activated_x_E_2d = activated_x.reshape((np.shape(activated_x)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
+            local_sum = convolve(activated_x_E_2d, weight_matrix, mode='wrap')
+            local_abs_sum = convolve(np.abs(activated_x_E_2d), weight_matrix, mode='wrap')
+            mean_sync_all[repeat_trial, trial] = np.mean(np.abs(local_sum/(local_abs_sum +1e-9)))
+
+            #mean acti
+            mean_acti_all[repeat_trial, trial] = np.mean(np.abs(activated_x))
+
+            #moran_index
+            centralized_activated_x_E = activated_x - np.mean(activated_x, axis=1)[:,np.newaxis]
+            centralized_activated_x_E_2d = centralized_activated_x_E.reshape((np.shape(centralized_activated_x_E)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
+            local_sum = convolve(centralized_activated_x_E_2d, weight_matrix, mode='wrap')
+            numerator = np.sum(centralized_activated_x_E_2d * local_sum, axis=(1,2))
+            denominator = np.sum(centralized_activated_x_E_2d ** 2, axis=(1,2))
+            moran_index_time = (1 / np.sum(weight_matrix)) * (numerator / denominator)
+            moran_index_all[repeat_trial, trial] = np.mean(moran_index_time)
+    
+    mean_sync, std_sync = np.mean(mean_sync_all, axis=0), np.std(mean_sync_all, axis=0)
+    mean_acti, std_acti = np.mean(mean_acti_all, axis=0), np.std(mean_acti_all, axis=0)
+    mean_moran, std_moran = np.mean(moran_index_all, axis=0), np.std(moran_index_all, axis=0)
+
+    changed_params_value_list = np.linspace(changed_params_value[0], changed_params_value[1], trial_num)
+    plt.errorbar(changed_params_value_list, mean_sync, std_sync, label = 'Local Sync.')
+    plt.errorbar(changed_params_value_list, mean_moran, std_moran, label = 'Moran Index')
+    plt.errorbar(changed_params_value_list, mean_acti, std_acti, label = 'Magnitude of Neural Activity')
+
+    plt.xlabel(changed_params_latex,fontsize=15)
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(5))
+    plt.gca().yaxis.set_major_locator(plt.MaxNLocator(5))
+    plt.xlabel(changed_params_latex, fontsize=15)
+    plt.legend()
+    
+    plt.savefig("./figs/phase_1p_"+file_name+".png")
+
+        
+
+
+
+
+    
