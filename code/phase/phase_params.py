@@ -214,7 +214,7 @@ def generate_params1p_phase_eta_try(trial:int, trial_num:int = 21):
 
     eta_list = np.linspace(0, 0.3, trial_num)
     eta = eta_list[trial]
-    g_EE, g_EI, g_IE, g_II = eta * np.array([g_bar_EE, g_bar_IE, g_bar_EI, g_bar_II])
+    g_EE, g_EI, g_IE, g_II = tuple(eta * np.array([g_bar_EE, g_bar_IE, g_bar_EI, g_bar_II]))
     
     p_net = Network_Params(N_E = N_E, N_I = N_I,
         N_EE = conn_NEE, N_IE = conn_NIE, N_EI = conn_NEI, N_II = conn_NII,
@@ -235,7 +235,7 @@ def generate_params1p_phase_eta(trial:int, trial_num:int = 21):
 
     eta_list = np.linspace(0, 0.3, trial_num)
     eta = eta_list[trial]
-    g_EE, g_EI, g_IE, g_II = eta * np.array([g_bar_EE, g_bar_IE, g_bar_EI, g_bar_II])
+    g_EE, g_EI, g_IE, g_II = tuple(eta * np.array([g_bar_EE, g_bar_IE, g_bar_EI, g_bar_II]))
     
     p_net = Network_Params(N_E = N_E, N_I = N_I,
         N_EE = conn_NEE, N_IE = conn_NIE, N_EI = conn_NEI, N_II = conn_NII,
