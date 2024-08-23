@@ -274,7 +274,7 @@ def generate_params1p_phase_alpha_E_I_0(trial:int, trial_num:int = 21):
     conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
     g_EE, g_EI, g_IE, g_II = 0.1, 0.1, 0.1, 0.1
     
-    alpha_list = np.linspace(0.2, 0.4, trial_num)
+    alpha_list = np.linspace(0.1, 0.5, trial_num)
     alpha = alpha_list[trial]
     conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
     
@@ -295,7 +295,7 @@ def generate_params1p_phase_alpha_E_I_1(trial:int, trial_num:int = 21):
     conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
     g_EE, g_EI, g_IE, g_II = 0.2, 0.2, 0.2, 0.2
     
-    alpha_list = np.linspace(0.16, 0.32, trial_num)
+    alpha_list = np.linspace(0.1, 0.5, trial_num)
     alpha = alpha_list[trial]
     conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
     
@@ -316,7 +316,7 @@ def generate_params1p_phase_alpha_E_I_2(trial:int, trial_num:int = 21):
     conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
     g_EE, g_EI, g_IE, g_II = 0.2, 0.2, 0.2, 0.2
     
-    alpha_list = np.linspace(0.12, 0.36, trial_num)
+    alpha_list = np.linspace(0.1, 0.5, trial_num)
     alpha = alpha_list[trial]
     conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
     

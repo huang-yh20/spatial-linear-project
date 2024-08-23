@@ -363,7 +363,7 @@ def plot_phase_diagram1p(file_name:str, changed_params_value:tuple, changed_para
         if len(lambda_list_pred_select) != 0:
             max_real_list.append(real_part_pred_select[np.argmax(real_part_pred_select)])
         else: 
-            max_real_list.append(0)
+            max_real_list.append(np.nan)
     #find params that radius=1 
     params_value_chaos_trans_list = [] 
     for trial in range(trial_num_theo-1):
@@ -373,14 +373,13 @@ def plot_phase_diagram1p(file_name:str, changed_params_value:tuple, changed_para
     for params_value_chaos_trans in params_value_chaos_trans_list:
         plt.axvline(params_value_chaos_trans, linestyle='--', color='gray')
     #find params that radius = real(max(lambda))
-    if max(max_real_list) > 1:
-        params_value_chaos_trans_list = []
-        for trial in range(trial_num_theo-1):
-            if (radius_list[trial] - max_real_list[trial]) * (radius_list[trial+1] - max_real_list[trial]) <= 0:
-                params_value_chaos_trans = changed_params_value[0] * (trial/(trial_num_theo-1)) + changed_params_value[1] * ((trial_num_theo-1-trial)/(trial_num_theo-1))
-                params_value_chaos_trans_list.append(params_value_chaos_trans)
-        for params_value_chaos_trans in params_value_chaos_trans_list:
-            plt.axvline(params_value_chaos_trans, linestyle='--', color='blue')
+    params_value_chaos_trans_list = []
+    for trial in range(trial_num_theo-1):
+        if (((radius_list[trial] - max_real_list[trial]) * (radius_list[trial+1] - max_real_list[trial+1]) <= 0) or (np.isnan(max_real_list[trial]) ^  np.isnan(max_real_list[trial+1]))) and (radius_list[trial] >= 1):
+            params_value_chaos_trans = changed_params_value[0] * (trial/(trial_num_theo-1)) + changed_params_value[1] * ((trial_num_theo-1-trial)/(trial_num_theo-1))
+            params_value_chaos_trans_list.append(params_value_chaos_trans)
+    for params_value_chaos_trans in params_value_chaos_trans_list:
+        plt.axvline(params_value_chaos_trans, linestyle='--', color='blue')
 
 
     #calc local_sync, moran_index, mean_acti, todo:freq
