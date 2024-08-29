@@ -169,7 +169,7 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
 def product_dyn_simul_gif(file_name, generate_params:Callable, dim=1):
     p_simul_linear = Simul_Params(T = 40, t_step=100, record_step=10, activation_func='linear')
     p_simul_tanhlinear = Simul_Params(T = 40, t_step=100, record_step=10, activation_func=['tanh','linear'])
-    p_simul_list = [('linear',p_simul_linear), ('tanhliear',p_simul_tanhlinear)]
+    p_simul_list = [('linear',p_simul_linear), ('tanhlinear',p_simul_tanhlinear)]
     trial_num_list = [0,5] #only simul nonlinear case
 
     #calculate xlim and ylim
