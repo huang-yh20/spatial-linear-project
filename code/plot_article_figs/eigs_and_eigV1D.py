@@ -11,6 +11,7 @@ sys.path.append("./code/phase/")
 from spatial_ultis import *
 from dyn_ultis import *
 from phase_params import *
+from dyn_params import *
 
 p_net = generate_params_dyn_global(3)
 dist_list = calc_dist(p_net, dim = 1)

@@ -14,6 +14,7 @@ sys.path.append("./code/phase/")
 from spatial_ultis import *
 from dyn_ultis import *
 from phase_params import *
+from dyn_params import *
 
 file_name_list = ['2dglobal','2dosc','2dbump','2dwave','2dchaos','2dwave']
 generate_params_list = [generate_params_dyn_global_new, generate_params_dyn_osc_new, generate_params_dyn_bump_new, generate_params_dyn_wave_new, generate_params_dyn_chaos_new, generate_params_dyn_wave_new]
@@ -27,7 +28,7 @@ for trial_plot in trange(len(file_name_list)):
     generate_params_func = generate_params_list[trial_plot]
     trial_params = trial_params_list[trial_plot]
 
-    p_net = generate_params_func[trial_params]
+    p_net = generate_params_func(trial_params)
     dist_list = calc_dist(p_net, dim = 2)
     J = generate_net(p_net, dist_list)
     eigs, eig_V = np.linalg.eig(J)

@@ -11,14 +11,15 @@ sys.path.append("./code/phase/")
 from spatial_ultis import *
 from dyn_ultis import *
 from phase_params import *
+from dyn_params import *
 
 #generate network params
-rescale = 1600
+rescale = 400
 N_E, N_I = 22500, 5625
-conn_NEE, conn_NIE, conn_NEI, conn_NII = 800, 200, 800, 200
+conn_NEE, conn_NIE, conn_NEI, conn_NII = 200, 50, 200, 50
 J_EE, J_IE, J_EI, J_II = 4/rescale, 4/rescale, -8/rescale, -8/rescale
 sigma_EE, sigma_IE, sigma_EI, sigma_II = 8/rescale, 8/rescale, -16/rescale, -16/rescale
-d_EE, d_IE, d_EI, d_II = 0.05, 0.05, 0.05, 0.05, 0.05
+d_EE, d_IE, d_EI, d_II = 0.05, 0.05, 0.05, 0.05
 
 p_net = Network_Params(N_E = N_E, N_I = N_I,
     N_EE = conn_NEE, N_IE = conn_NIE, N_EI = conn_NEI, N_II = conn_NII,
