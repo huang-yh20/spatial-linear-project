@@ -94,8 +94,8 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
                 ax.plot(np.linspace(0,1,p_net.N_E), record_x[step,0:p_net.N_E],'ro',markersize=0.5,label='Exc.')
                 ax.plot(np.linspace(0,1,p_net.N_I), record_x[step,p_net.N_E:p_net.N_E+p_net.N_I],'bo',markersize=0.5,label='Inh.')
             else:
-                ax.plot(np.linspace(0,1,p_net.N_E), x_smoothed_E,'r-',markersize=0.5,label='Exc.')
-                ax.plot(np.linspace(0,1,p_net.N_I), x_smoothed_I,'b-',markersize=0.5,label='Inh.')
+                ax.plot(np.linspace(0,1,p_net.N_E), x_smoothed_E,'r.',markersize=0.5,label='Exc.')
+                ax.plot(np.linspace(0,1,p_net.N_I), x_smoothed_I,'b.',markersize=0.5,label='Inh.')
             ax.plot(np.linspace(0,1,p_net.N_E), np.linspace(0,0,p_net.N_E), "k--")
             
             # 设置标签和刻度

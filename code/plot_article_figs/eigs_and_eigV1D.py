@@ -59,8 +59,8 @@ eigs_indice = outlier_eig_indice + bulk_eig_indice
 for eig_trial in range(len(eigs_indice)):
     eig_index = eigs_indice[eig_trial]
     fig, ax = plt.subplots()
-    ax.plot(np.linspace(0,1,p_net.N_E), eig_V[0:p_net.N_E, eig_index],'r-',markersize=0.5,label='Exc.')
-    ax.plot(np.linspace(0,1,p_net.N_I), eig_V[p_net.N_E:p_net.N_E+p_net.N_I, eig_index],'b-',markersize=0.5,label='Inh.')
+    ax.plot(np.linspace(0,1,p_net.N_E), eig_V[0:p_net.N_E, eig_index],'r.',markersize=0.5,label='Exc.')
+    ax.plot(np.linspace(0,1,p_net.N_I), eig_V[p_net.N_E:p_net.N_E+p_net.N_I, eig_index],'b.',markersize=0.5,label='Inh.')
     ax.plot(np.linspace(0,1,p_net.N_E), np.linspace(0,0,p_net.N_E), "k--")
     ax.set_xlabel("Location", fontsize=15)
     ax.set_ylabel("Activity", fontsize=15)

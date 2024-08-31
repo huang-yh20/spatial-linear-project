@@ -53,7 +53,7 @@ for trial_plot in trange(len(file_name_list)):
     scale_max = np.max(eig_V[0:p_net.N_E,:])
     norm = mcolors.TwoSlopeNorm(vmin=-scale_max, vcenter=0, vmax=scale_max)
     eigV_imag = eig_V[0:p_net.N_E, largest_eigs_index].reshape((int(np.ceil(np.sqrt(p_net.N_E))),int(np.ceil(np.sqrt(p_net.N_E)))))
-    img = ax_inset.imshow(eigV_imag, cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
+    img = ax_inset.imshow(eigV_imag.real, cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
     ax_inset.set_xlabel("Location", fontsize=15)
     ax_inset.set_ylabel("Location", fontsize=15)
 
