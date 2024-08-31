@@ -170,7 +170,7 @@ def generate_params1p_phase_alpha(trial:int, trial_num:int = 21):
     g_bar_EE, g_bar_IE, g_bar_EI, g_bar_II = 6.25, 2.81, -11.25, -4.38
     g_EE, g_EI, g_IE, g_II = 0.1, 0.1, 0.1, 0.1
 
-    alpha_list = np.linspace(0.2, 0.4, trial_num)
+    alpha_list = np.linspace(0.2, 0.32, trial_num)
     alpha = alpha_list[trial]
     conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
     

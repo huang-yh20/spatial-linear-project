@@ -29,5 +29,5 @@ if trial == 4:
     plot_phase_diagram1p("eta", (0, 0.3), r"$\eta$", generate_params1p_phase_eta, p_simul, trial_num = 41, repeat_num = 5)
 
 if trial == 5:
-    plot_phase_diagram1p("alpha", (0.2, 0.4), r"$\eta$", generate_params1p_phase_alpha, p_simul, trial_num = 41, repeat_num = 5)
+    plot_phase_diagram1p("alpha", (0.2, 0.4), r"$\alpha$", generate_params1p_phase_alpha, p_simul, trial_num = 41, repeat_num = 5)
 

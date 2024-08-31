@@ -42,7 +42,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
         return activated_x
     
     #calculate the phase boundary
-    def plot_phase_boundary(radius_list, max_real_list, wavenum_diagram, freq_diagram, trial_num_theo, trial_num=21, plot_list=[True,True,True,True]):
+    def plot_phase_boundary(radius_list, max_real_list, wavenum_diagram, freq_diagram, trial_num_theo=21, trial_num=21, plot_list=[True,True,True,True]):
         eps = 0.001
         x = np.linspace(0, trial_num-1, trial_num_theo)
         y = np.linspace(0, trial_num-1, trial_num_theo)
@@ -57,7 +57,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
             plt.contour(X, Y, freq_diagram, levels=[eps], colors='red', linestyles='--')
 
     t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1
-    trial_num_theo = 21
+    trial_num_theo = 61
     moran_radius = 5
 
     radius_list = np.zeros((trial_num_theo, trial_num_theo))
@@ -373,13 +373,13 @@ def plot_phase_diagram1p(file_name:str, changed_params_value:tuple, changed_para
     for params_value_chaos_trans in params_value_chaos_trans_list:
         plt.axvline(params_value_chaos_trans, linestyle='--', color='gray')
     #find params that radius = real(max(lambda))
-    params_value_chaos_trans_list = []
-    for trial in range(trial_num_theo-1):
-        if (((radius_list[trial] - max_real_list[trial]) * (radius_list[trial+1] - max_real_list[trial+1]) <= 0) or (np.isnan(max_real_list[trial]) ^  np.isnan(max_real_list[trial+1]))) and (radius_list[trial] >= 1):
-            params_value_chaos_trans = changed_params_value[0] * ((trial_num_theo-1-trial)/(trial_num_theo-1)) + changed_params_value[1] * ((trial)/(trial_num_theo-1))
-            params_value_chaos_trans_list.append(params_value_chaos_trans)
-    for params_value_chaos_trans in params_value_chaos_trans_list:
-        plt.axvline(params_value_chaos_trans, linestyle='--', color='blue')
+    # params_value_chaos_trans_list = []
+    # for trial in range(trial_num_theo-1):
+    #     if (((radius_list[trial] - max_real_list[trial]) * (radius_list[trial+1] - max_real_list[trial+1]) <= 0) or (np.isnan(max_real_list[trial]) ^  np.isnan(max_real_list[trial+1]))) and (radius_list[trial] >= 1):
+    #         params_value_chaos_trans = changed_params_value[0] * ((trial_num_theo-1-trial)/(trial_num_theo-1)) + changed_params_value[1] * ((trial)/(trial_num_theo-1))
+    #         params_value_chaos_trans_list.append(params_value_chaos_trans)
+    # for params_value_chaos_trans in params_value_chaos_trans_list:
+    #     plt.axvline(params_value_chaos_trans, linestyle='--', color='blue')
 
 
     #calc local_sync, moran_index, mean_acti, todo:freq

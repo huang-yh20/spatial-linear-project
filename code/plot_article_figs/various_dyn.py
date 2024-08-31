@@ -49,8 +49,16 @@ for trial_plot in trange(len(file_name_list)):
     #plot eigV of largest eigs
     largest_eigs_index = np.argmax(real_part)
     plt.scatter([real_part[largest_eigs_index]],[imag_part[largest_eigs_index]],s=15,c='b',marker='^')
+    ax.set_xlabel("$Re(\\lambda)$", fontsize=15)
+    ax.tick_params(axis='x', labelsize=15)  
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=4)) 
+    ax.set_ylabel("$Im(\\lambda)$", fontsize=15)
+    ax.tick_params(axis='y', labelsize=15)  
+    ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
+    ax.set_aspect('equal') 
+        
     ax_inset = inset_axes(ax, width="30%", height="30%", loc='upper right')
-    scale_max = np.max(eig_V[0:p_net.N_E,:])
+    scale_max = np.max((eig_V.real)[0:p_net.N_E,:])
     norm = mcolors.TwoSlopeNorm(vmin=-scale_max, vcenter=0, vmax=scale_max)
     eigV_imag = eig_V[0:p_net.N_E, largest_eigs_index].reshape((int(np.ceil(np.sqrt(p_net.N_E))),int(np.ceil(np.sqrt(p_net.N_E)))))
     img = ax_inset.imshow(eigV_imag.real, cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
@@ -63,8 +71,8 @@ for trial_plot in trange(len(file_name_list)):
     
     ax_inset.set_xticklabels([0, 1])
     ax_inset.set_yticklabels([0, 1])
-    ax_inset.tick_params(ax_insetis='x', labelsize=15)
-    ax_inset.tick_params(ax_insetis='y', labelsize=15)
+    # ax_inset.tick_params(ax_insetis='x', labelsize=15)
+    # ax_inset.tick_params(ax_insetis='y', labelsize=15)
 
     plt.savefig(r"./figs/artfigs_variousdyn_eigs_"+str(trial_plot)+".png")
     plt.close()
