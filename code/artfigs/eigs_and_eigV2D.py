@@ -4,14 +4,17 @@ import scipy.sparse as spa
 import scipy.sparse.linalg as spalin
 import matplotlib.colors as mcolors
 from matplotlib.ticker import MaxNLocator
+import os
 import sys
 sys.path.append("./code/dyn/")
 sys.path.append("./code/")
 sys.path.append("./code/phase/")
+sys.path.append("./code/artfigs/")
 from spatial_ultis import *
 from dyn_ultis import *
 from phase_params import *
 from dyn_params import *
+from artfigs_ulits import *
 
 #generate network params
 rescale = 1600
@@ -29,9 +32,16 @@ p_net = Network_Params(N_E = N_E, N_I = N_I,
     )
 
 #calc eigs
-dist_list = calc_dist(p_net, dim = 2)
-J = generate_net(p_net, dist_list)
-eigs, eig_V = np.linalg.eig(J)
+calc_eigs_bool = False
+if os.path.exists("./data/artfigs_eigsandeigV2D_eigs.npy") and (not calc_eigs_bool):
+    eigs = np.load("./data/artfigs_eigsandeigV2D_eigs.npy")
+    eig_V = np.load("./data/artfigs_eigsandeigV2D_eigV.npy")
+else:
+    dist_list = calc_dist(p_net, dim = 2)
+    J = generate_net(p_net, dist_list)
+    eigs, eig_V = np.linalg.eig(J)
+    np.save("./data/artfigs_eigsandeigV2D_eigs.npy", eigs)
+    np.save("./data/artfigs_eigsandeigV2D_eigV.npy", eig_V)
 
 #eigV ploted
 outlier_plot_num = 21
@@ -43,30 +53,13 @@ outlier_eig_indice = find_points(eigs, 100+0j, outlier_plot_num)
 #bulk eigs ploted indice
 bulk_eig_indice = find_points(eigs, 0.1+0j, bulk_plot_num)
 
-real_part = np.real(eigs)
-imag_part = np.imag(eigs)
-plt.scatter(real_part, imag_part, s=3, c='none', marker='o', edgecolors='k')
-ax = plt.gca()
-ax.set_xlabel("$Re(\\lambda)$", fontsize=15)
-ax.tick_params(axis='x', labelsize=15)  # 控制x轴刻度的字体大小
-ax.xaxis.set_major_locator(MaxNLocator(nbins=4)) 
-ax.set_ylabel("$Im(\\lambda)$", fontsize=15)
-ax.tick_params(axis='y', labelsize=15)  # 控制y轴刻度的字体大小
-ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
-ax.set_aspect('equal') 
+artfigs_plot_eigs(eigs)
 plt.savefig(r"figs/artfigs_eigsandeigV2D_eigs.png")
 plt.close()
 
-plt.scatter(real_part, imag_part, s=3, c='none', marker='o', edgecolors='k')
+
 temp_plot_pred(p_net, dim=2)
-ax = plt.gca()
-ax.set_xlabel("$Re(\\lambda)$", fontsize=15)
-ax.tick_params(axis='x', labelsize=15)  # 控制x轴刻度的字体大小
-ax.xaxis.set_major_locator(MaxNLocator(nbins=4)) 
-ax.set_ylabel("$Im(\\lambda)$", fontsize=15)
-ax.tick_params(axis='y', labelsize=15)  # 控制y轴刻度的字体大小
-ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
-ax.set_aspect('equal') 
+artfigs_plot_eigs(eigs)
 plt.savefig(r"figs/artfigs_eigsandeigV2D_eigs_withpred.png")
 plt.close()
 

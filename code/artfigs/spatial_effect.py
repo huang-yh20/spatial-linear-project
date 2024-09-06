@@ -4,13 +4,16 @@ import scipy.sparse as spa
 import scipy.sparse.linalg as spalin
 import matplotlib.colors as mcolors
 from matplotlib.ticker import MaxNLocator
+import os
 import sys
 sys.path.append("./code/dyn/")
 sys.path.append("./code/")
 sys.path.append("./code/phase/")
+sys.path.append("./code/artfigs/")
 from spatial_ultis import *
 from dyn_ultis import *
 from phase_params import *
+from artfigs_ulits import *
 
 def generate_params_spatial_effect(trial:int):
     rescale = 1600
@@ -35,35 +38,22 @@ def generate_params_spatial_effect(trial:int):
 trial_num = 4
 for trial in range(trial_num):
     p_net = generate_params_spatial_effect(trial)
-    dist_list = calc_dist(p_net, dim = 1)
-    J = generate_net(p_net, dist_list)
-    eigs, eig_V = np.linalg.eig(J)
-
-    real_part = np.real(eigs)
-    imag_part = np.imag(eigs)
-    plt.scatter(real_part, imag_part, s=3, c='none', marker='o', edgecolors='k')
-    ax = plt.gca()
-    ax.set_xlabel("$Re(\\lambda)$", fontsize=15)
-    ax.tick_params(axis='x', labelsize=15)  # 控制x轴刻度的字体大小
-    ax.xaxis.set_major_locator(MaxNLocator(nbins=4)) 
-    ax.set_ylabel("$Im(\\lambda)$", fontsize=15)
-    ax.tick_params(axis='y', labelsize=15)  # 控制y轴刻度的字体大小
-    ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
-    ax.set_aspect('equal') 
+    calc_eigs_bool = False
+    if os.path.exists(r"figs/artfigs_spatialeffect_eigs_"+str(trial)+"eigs.npy") and (not calc_eigs_bool):
+        eigs = np.load(r"figs/artfigs_spatialeffect_eigs_"+str(trial)+"eigs.npy")
+        eig_V = np.load(r"figs/artfigs_spatialeffect_eigs_"+str(trial)+"eigV.npy")
+    else:
+        dist_list = calc_dist(p_net, dim = 1)
+        J = generate_net(p_net, dist_list)
+        eigs, eig_V = np.linalg.eig(J)
+        np.save(r"figs/artfigs_spatialeffect_eigs_"+str(trial)+"eigs.npy", eigs)
+        np.save(r"figs/artfigs_spatialeffect_eigs_"+str(trial)+"eigV.npy", eig_V)
+    artfigs_plot_eigs(eigs)
     plt.savefig(r"figs/artfigs_spatialeffect_eigs_"+str(trial)+".png")
     plt.close()
 
-    real_part = np.real(eigs)
-    imag_part = np.imag(eigs)
-    plt.scatter(real_part, imag_part, s=3, c='none', marker='o', edgecolors='k')
+
     temp_plot_pred(p_net, dim=1)
-    ax = plt.gca()
-    ax.set_xlabel("$Re(\\lambda)$", fontsize=15)
-    ax.tick_params(axis='x', labelsize=15)  # 控制x轴刻度的字体大小
-    ax.xaxis.set_major_locator(MaxNLocator(nbins=4)) 
-    ax.set_ylabel("$Im(\\lambda)$", fontsize=15)
-    ax.tick_params(axis='y', labelsize=15)  # 控制y轴刻度的字体大小
-    ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
-    ax.set_aspect('equal') 
+    artfigs_plot_eigs(eigs)
     plt.savefig(r"figs/artfigs_spatialeffect_eigs_withpred"+str(trial)+".png")
     plt.close()

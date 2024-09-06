@@ -7,14 +7,17 @@ import scipy.sparse.linalg as spalin
 from tqdm import trange
 import matplotlib.colors as mcolors
 from matplotlib.ticker import MaxNLocator
+import os
 import sys
 sys.path.append("./code/dyn/")
 sys.path.append("./code/")
 sys.path.append("./code/phase/")
+sys.path.append("./code/artfigs/")
 from spatial_ultis import *
 from dyn_ultis import *
 from phase_params import *
 from dyn_params import *
+from artfigs_ulits import *
 
 trial_num = 41
 t_show = 20
@@ -23,28 +26,26 @@ file_name_list = ["alpha"]
 generate_params_func_list = [generate_params1p_phase_alpha]
 trial_plot_lists = [[10,20,30]]
 
-for file_trial in range(file_name_list):
+for file_trial in range(len(file_name_list)):
     file_name = file_name_list[file_trial]
     generate_params_func = generate_params_func_list[file_trial]
     trial_plot_list = trial_plot_lists[file_trial]
     for plot_trial in range(len(trial_plot_list)):
         p_net = generate_params_func(plot_trial,trial_num)
-        dist_list = calc_dist(p_net, dim = 2)
-        J = generate_net(p_net, dist_list)
-        eigs, eig_V = np.linalg.eig(J)
+        calc_eigs_bool = False
+        if os.path.exists(r"./data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial[0])+"_"+str(plot_trial[1])+"eigs.npy") and (not calc_eigs_bool):
+            eigs = np.load(r"./data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial[0])+"_"+str(plot_trial[1])+"eigs.npy")
+            eig_V = np.load(r"./data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial[0])+"_"+str(plot_trial[1])+"eigV.npy")
+        else:
+            dist_list = calc_dist(p_net, dim = 2)
+            J = generate_net(p_net, dist_list)
+            eigs, eig_V = np.linalg.eig(J)
+            np.save(r"./data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial[0])+"_"+str(plot_trial[1])+"eigs.npy", eigs)
+            np.save(r"./data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial[0])+"_"+str(plot_trial[1])+"eigV.npy", eig_V)
+
 
         #plot eigs
-        real_part = np.real(eigs)
-        imag_part = np.imag(eigs)
-        plt.scatter(real_part, imag_part, s=3, c='none', marker='o', edgecolors='k')
-        ax = plt.gca()
-        ax.set_xlabel("$Re(\\lambda)$", fontsize=15)
-        ax.tick_params(axis='x', labelsize=15)  # 控制x轴刻度的字体大小
-        ax.xaxis.set_major_locator(MaxNLocator(nbins=4)) 
-        ax.set_ylabel("$Im(\\lambda)$", fontsize=15)
-        ax.tick_params(axis='y', labelsize=15)  # 控制y轴刻度的字体大小
-        ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
-        ax.set_aspect('equal') 
+        artfigs_plot_eigs(eigs)
         plt.savefig(r"figs/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial)+".png")
         plt.close()
 
@@ -98,16 +99,6 @@ for file_trial in range(file_name_list):
         cb.update_ticks()
 
         ax_inset = inset_axes(ax, width="30%", height="30%", loc='upper left')        
-        real_part = np.real(eigs)
-        imag_part = np.imag(eigs)
-        plt.scatter(real_part, imag_part, s=3, c='none', marker='o', edgecolors='k')
-        ax = plt.gca()
-        #ax_inset.set_xlabel("$Re(\\lambda)$", fontsize=15)
-        #ax_inset.tick_params(axis='x', labelsize=15)  # 控制x轴刻度的字体大小
-        ax_inset.xaxis.set_major_locator(MaxNLocator(nbins=3)) 
-        #ax_inset.set_ylabel("$Im(\\lambda)$", fontsize=15)
-        #ax_inset.tick_params(axis='y', labelsize=15)  # 控制y轴刻度的字体大小
-        ax_inset.yaxis.set_major_locator(MaxNLocator(nbins=3)) 
-        ax_inset.set_aspect('equal') 
+        artfigs_plot_eigs(eigs, ax=ax_inset)
         plt.savefig(r"figs/artfigs_phasediagacti1p_"+file_name+"dynimagwitheigs_"+str(plot_trial)+".png")
         plt.close()        
