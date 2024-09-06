@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH -e test.err:%a
+#SBATCH -e "%j.err"
 #SBATCH -o test.out
 #SBATCH -J spatial-linear
 

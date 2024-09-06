@@ -33,15 +33,15 @@ for file_trial in range(len(file_name_list)):
     for plot_trial in range(len(trial_plot_list)):
         p_net = generate_params_func(plot_trial,trial_num)
         calc_eigs_bool = False
-        if os.path.exists(r"./data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial[0])+"_"+str(plot_trial[1])+"eigs.npy") and (not calc_eigs_bool):
-            eigs = np.load(r"./data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial[0])+"_"+str(plot_trial[1])+"eigs.npy")
-            eig_V = np.load(r"./data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial[0])+"_"+str(plot_trial[1])+"eigV.npy")
+        if os.path.exists(r"data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial)+"eigs.npy") and (not calc_eigs_bool):
+            eigs = np.load(r"data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial)+"eigs.npy")
+            eig_V = np.load(r"data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial)+"eigV.npy")
         else:
             dist_list = calc_dist(p_net, dim = 2)
             J = generate_net(p_net, dist_list)
             eigs, eig_V = np.linalg.eig(J)
-            np.save(r"./data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial[0])+"_"+str(plot_trial[1])+"eigs.npy", eigs)
-            np.save(r"./data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial[0])+"_"+str(plot_trial[1])+"eigV.npy", eig_V)
+            np.save(r"data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial)+"eigs.npy", eigs)
+            np.save(r"data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial)+"eigV.npy", eig_V)
 
 
         #plot eigs
