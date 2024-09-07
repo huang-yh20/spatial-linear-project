@@ -33,15 +33,15 @@ for trial_plot in trange(len(file_name_list)):
 
     p_net = generate_params_func(trial_params)
     calc_eigs_bool = False
-    if os.path.exists(r"./figs/artfigs_variousdyn_eigs_"+str(trial_plot)+"eigs.npy") and (not calc_eigs_bool):
-        eigs = np.load(r"./figs/artfigs_variousdyn_eigs_"+str(trial_plot)+"eigs.npy")
-        eig_V = np.load(r"./figs/artfigs_variousdyn_eigs_"+str(trial_plot)+"eigV.npy")
+    if os.path.exists(r"./data/artfigs_variousdyn_eigs_"+str(trial_plot)+"eigs.npy") and (not calc_eigs_bool):
+        eigs = np.load(r"./data/artfigs_variousdyn_eigs_"+str(trial_plot)+"eigs.npy")
+        eig_V = np.load(r"./data/artfigs_variousdyn_eigs_"+str(trial_plot)+"eigV.npy")
     else:
         dist_list = calc_dist(p_net, dim = 2)
         J = generate_net(p_net, dist_list)
         eigs, eig_V = np.linalg.eig(J)
-        np.save(r"./figs/artfigs_variousdyn_eigs_"+str(trial_plot)+"eigs.npy", eigs)
-        np.save(r"./figs/artfigs_variousdyn_eigs_"+str(trial_plot)+"eigV.npy", eig_V)
+        np.save(r"./data/artfigs_variousdyn_eigs_"+str(trial_plot)+"eigs.npy", eigs)
+        np.save(r"./data/artfigs_variousdyn_eigs_"+str(trial_plot)+"eigV.npy", eig_V)
     
     real_part = np.real(eigs)
     imag_part = np.imag(eigs)

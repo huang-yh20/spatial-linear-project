@@ -39,15 +39,15 @@ trial_num = 4
 for trial in range(trial_num):
     p_net = generate_params_spatial_effect(trial)
     calc_eigs_bool = False
-    if os.path.exists(r"figs/artfigs_spatialeffect_eigs_"+str(trial)+"eigs.npy") and (not calc_eigs_bool):
-        eigs = np.load(r"figs/artfigs_spatialeffect_eigs_"+str(trial)+"eigs.npy")
-        eig_V = np.load(r"figs/artfigs_spatialeffect_eigs_"+str(trial)+"eigV.npy")
+    if os.path.exists(r"data/artfigs_spatialeffect_eigs_"+str(trial)+"eigs.npy") and (not calc_eigs_bool):
+        eigs = np.load(r"data/artfigs_spatialeffect_eigs_"+str(trial)+"eigs.npy")
+        eig_V = np.load(r"data/artfigs_spatialeffect_eigs_"+str(trial)+"eigV.npy")
     else:
         dist_list = calc_dist(p_net, dim = 1)
         J = generate_net(p_net, dist_list)
         eigs, eig_V = np.linalg.eig(J)
-        np.save(r"figs/artfigs_spatialeffect_eigs_"+str(trial)+"eigs.npy", eigs)
-        np.save(r"figs/artfigs_spatialeffect_eigs_"+str(trial)+"eigV.npy", eig_V)
+        np.save(r"data/artfigs_spatialeffect_eigs_"+str(trial)+"eigs.npy", eigs)
+        np.save(r"data/artfigs_spatialeffect_eigs_"+str(trial)+"eigV.npy", eig_V)
     artfigs_plot_eigs(eigs)
     plt.savefig(r"figs/artfigs_spatialeffect_eigs_"+str(trial)+".png")
     plt.close()
