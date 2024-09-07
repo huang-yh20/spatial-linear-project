@@ -30,7 +30,7 @@ for file_trial in range(len(file_name_list)):
     file_name = file_name_list[file_trial]
     generate_params_func = generate_params_func_list[file_trial]
     trial_plot_list = trial_plot_lists[file_trial]
-    for plot_trial in range(len(trial_plot_list)):
+    for plot_trial in trial_plot_list:
         p_net = generate_params_func(plot_trial[0],plot_trial[1],trial_num)
 
         calc_eigs_bool = False

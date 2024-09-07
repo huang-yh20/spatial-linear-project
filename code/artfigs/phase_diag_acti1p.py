@@ -30,7 +30,7 @@ for file_trial in range(len(file_name_list)):
     file_name = file_name_list[file_trial]
     generate_params_func = generate_params_func_list[file_trial]
     trial_plot_list = trial_plot_lists[file_trial]
-    for plot_trial in range(len(trial_plot_list)):
+    for plot_trial in trial_plot_list:
         p_net = generate_params_func(plot_trial,trial_num)
         calc_eigs_bool = False
         if os.path.exists(r"data/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial)+"eigs.npy") and (not calc_eigs_bool):

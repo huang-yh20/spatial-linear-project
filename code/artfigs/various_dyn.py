@@ -98,6 +98,7 @@ for trial_plot in trange(len(file_name_list)):
         cb.update_ticks()
 
         plt.savefig(r"./figs/artfigs_variousdyn_dynimag_"+str(trial_plot)+"_"+str(trial_show)+".png")
+        plt.close()
             
         
         
