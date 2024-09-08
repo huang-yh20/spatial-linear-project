@@ -55,7 +55,7 @@ for trial_plot in trange(len(file_name_list)):
     plt.scatter([real_part[largest_eigs_index]],[imag_part[largest_eigs_index]],s=30,c='r',marker='^')
         
     ax_inset = inset_axes(ax, width="30%", height="30%", loc='upper left')
-    scale_max = np.max((eig_V.real)[0:p_net.N_E,:])
+    scale_max = np.max((eig_V.real)[0:p_net.N_E, largest_eigs_index])
     norm = mcolors.TwoSlopeNorm(vmin=-scale_max, vcenter=0, vmax=scale_max)
     eigV_imag = eig_V[0:p_net.N_E, largest_eigs_index].reshape((int(np.ceil(np.sqrt(p_net.N_E))),int(np.ceil(np.sqrt(p_net.N_E)))))
     img = ax_inset.imshow(eigV_imag.real, cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)

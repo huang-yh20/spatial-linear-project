@@ -69,7 +69,7 @@ eigs_indice = outlier_eig_indice + bulk_eig_indice
 for eig_trial in range(len(eigs_indice)):
     eig_index = eigs_indice[eig_trial]
     fig, ax = plt.subplots()
-    scale_max = np.max((eig_V.real)[0:p_net.N_E,:])
+    scale_max = np.max((eig_V.real)[0:p_net.N_E, eig_index])
     norm = mcolors.TwoSlopeNorm(vmin=-scale_max, vcenter=0, vmax=scale_max)
     eigV_imag = eig_V[0:p_net.N_E, eig_index].reshape((int(np.ceil(np.sqrt(p_net.N_E))),int(np.ceil(np.sqrt(p_net.N_E)))))
     img = ax.imshow(eigV_imag.real, cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)

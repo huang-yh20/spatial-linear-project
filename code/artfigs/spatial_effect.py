@@ -55,7 +55,7 @@ for trial in range(trial_num):
 
 
     temp_plot_pred(p_net, dim=1)
-    artfigs_plot_eigs(eigs)
+    artfigs_plot_eigs(eigs,axvline=False)
     plt.tight_layout()
     plt.savefig(r"figs/artfigs_spatialeffect_eigs_withpred"+str(trial)+".png")
     plt.close()
