@@ -39,7 +39,7 @@ outlier_eig_indice = find_points(eigs, 100+0j, outlier_plot_num)
 #bulk eigs ploted indice
 bulk_eig_indice = find_points(eigs, 0.1+0j, bulk_plot_num)
 
-artfigs_plot_eigs(eigs)
+artfigs_plot_eigs(eigs,axvline=False)
 plt.tight_layout()
 plt.savefig(r"figs/artfigs_eigsandeigV1D_eigs.png")
 plt.close()

@@ -24,7 +24,7 @@ t_show = 20
 p_simul = Simul_Params(T = 40, t_step=100, record_step=10, activation_func=['tanh','linear'])
 file_name_list = ["alpha"]
 generate_params_func_list = [generate_params1p_phase_alpha]
-trial_plot_lists = [[10,20,30]]
+trial_plot_lists = [[3,20,37]]
 
 for file_trial in range(len(file_name_list)):
     file_name = file_name_list[file_trial]

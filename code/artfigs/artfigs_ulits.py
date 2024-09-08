@@ -21,12 +21,12 @@ def eigs_axislim_default(eigs:np.ndarray):
     real_part = np.real(eigs)
     imag_part = np.imag(eigs)
     fig_lim = max(np.max(real_part) - np.min(real_part), np.max(imag_part) - np.min(imag_part)) + 0.2
-    fig_lim = max(2.2, fig_lim)
+    fig_lim = max(1 - np.min(real_part) + 0.2, fig_lim)
     x_center, y_center = 0.5 * (np.max(real_part) + np.min(real_part)), 0.5 * (np.max(imag_part) + np.min(imag_part))
     return ((x_center - 0.5*fig_lim, x_center + 0.5*fig_lim), (y_center - 0.5*fig_lim, y_center + 0.5*fig_lim))
 
 
-def artfigs_plot_eigs(eigs:np.ndarray, ax = None, eigs_axislim: Callable = eigs_axislim_default):
+def artfigs_plot_eigs(eigs:np.ndarray, ax = None, eigs_axislim: Callable = eigs_axislim_default, axvline=True):
     xlim, ylim = eigs_axislim(eigs)
     if ax == None:
         ax = plt. gca()
@@ -53,5 +53,6 @@ def artfigs_plot_eigs(eigs:np.ndarray, ax = None, eigs_axislim: Callable = eigs_
     real_part = np.real(eigs)
     imag_part = np.imag(eigs)
     ax.scatter(real_part, imag_part, s=3, c='none', marker='o', edgecolors='k')
-    ax.axvline(x=1,c='gray',ls='--')
+    if axvline:
+        ax.axvline(x=1,c='gray',ls='--')
 
