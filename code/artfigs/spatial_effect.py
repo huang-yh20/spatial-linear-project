@@ -49,11 +49,13 @@ for trial in range(trial_num):
         np.save(r"data/artfigs_spatialeffect_eigs_"+str(trial)+"eigs.npy", eigs)
         np.save(r"data/artfigs_spatialeffect_eigs_"+str(trial)+"eigV.npy", eig_V)
     artfigs_plot_eigs(eigs)
+    plt.tight_layout()
     plt.savefig(r"figs/artfigs_spatialeffect_eigs_"+str(trial)+".png")
     plt.close()
 
 
     temp_plot_pred(p_net, dim=1)
     artfigs_plot_eigs(eigs)
+    plt.tight_layout()
     plt.savefig(r"figs/artfigs_spatialeffect_eigs_withpred"+str(trial)+".png")
     plt.close()

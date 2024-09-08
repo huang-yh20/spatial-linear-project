@@ -52,9 +52,9 @@ for trial_plot in trange(len(file_name_list)):
 
     #plot eigV of largest eigs
     largest_eigs_index = np.argmax(real_part)
-    plt.scatter([real_part[largest_eigs_index]],[imag_part[largest_eigs_index]],s=25,c='b',marker='^')
+    plt.scatter([real_part[largest_eigs_index]],[imag_part[largest_eigs_index]],s=30,c='r',marker='^')
         
-    ax_inset = inset_axes(ax, width="30%", height="30%", loc='upper right')
+    ax_inset = inset_axes(ax, width="30%", height="30%", loc='upper left')
     scale_max = np.max((eig_V.real)[0:p_net.N_E,:])
     norm = mcolors.TwoSlopeNorm(vmin=-scale_max, vcenter=0, vmax=scale_max)
     eigV_imag = eig_V[0:p_net.N_E, largest_eigs_index].reshape((int(np.ceil(np.sqrt(p_net.N_E))),int(np.ceil(np.sqrt(p_net.N_E)))))
@@ -70,12 +70,14 @@ for trial_plot in trange(len(file_name_list)):
     ax_inset.set_yticklabels([0, 1])
     # ax_inset.tick_params(ax_insetis='x', labelsize=15)
     # ax_inset.tick_params(ax_insetis='y', labelsize=15)
-
+    plt.tight_layout()
     plt.savefig(r"./figs/artfigs_variousdyn_eigs_"+str(trial_plot)+".png")
     plt.close()
 
     record_x = np.load(r'./data/'+'dyn_record_'+file_name+'_'+'tanhlinear'+str(trial_params)+'.npy')
-    scale_max = np.max(record_x)
+    record_x = activation_func(record_x)
+    #scale_max = np.max(record_x)
+    scale_max = 1
     record_x_img = (record_x[:,0:p_net.N_E]).reshape(np.shape(record_x)[0],int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))
     for trial_show in range(t_show_num):
         step_show = int((t_show_step * trial_show + t_show_onset) * p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step)
@@ -96,7 +98,7 @@ for trial_plot in trange(len(file_name_list)):
         cb = fig.colorbar(img, ax=ax, extend='both')
         cb.locator = MaxNLocator(nbins=5)
         cb.update_ticks()
-
+        plt.tight_layout()
         plt.savefig(r"./figs/artfigs_variousdyn_dynimag_"+str(trial_plot)+"_"+str(trial_show)+".png")
         plt.close()
             

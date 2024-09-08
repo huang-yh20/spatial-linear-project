@@ -15,6 +15,7 @@ from spatial_ultis import *
 sys.path.append("./code/dyn/")
 from dyn_ultis import *
 
+activation_func = activation_func_tanh
 
 def eigs_axislim_default(eigs:np.ndarray):
     real_part = np.real(eigs)
@@ -41,15 +42,16 @@ def artfigs_plot_eigs(eigs:np.ndarray, ax = None, eigs_axislim: Callable = eigs_
     else: 
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
-        ax.set_xlabel("$Re(\\lambda)$")
+        #ax.set_xlabel("$Re(\\lambda)$")
         ax.tick_params(axis='x')  
-        ax.xaxis.set_major_locator(MaxNLocator(nbins=4)) 
-        ax.set_ylabel("$Im(\\lambda)$")
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=2)) 
+        #ax.set_ylabel("$Im(\\lambda)$")
         ax.tick_params(axis='y')  
-        ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=2)) 
         ax.set_aspect('equal') 
 
     real_part = np.real(eigs)
     imag_part = np.imag(eigs)
     ax.scatter(real_part, imag_part, s=3, c='none', marker='o', edgecolors='k')
+    ax.axvline(x=1,c='gray',ls='--')
 

@@ -46,11 +46,13 @@ for file_trial in range(len(file_name_list)):
 
         #plot eigs
         artfigs_plot_eigs(eigs)
+        plt.tight_layout()
         plt.savefig(r"figs/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial)+".png")
         plt.close()
 
         #plot dyn_imag
         record_x = np.load(r'./data/'+'phase_dynrec_'+file_name+'_'+str(plot_trial)+'_0.npy')
+        record_x = activation_func(record_x)
         scale_max = np.max(record_x)
         record_x_img = (record_x[:,0:p_net.N_E]).reshape(np.shape(record_x)[0],int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))
         
@@ -72,8 +74,9 @@ for file_trial in range(len(file_name_list)):
         cb = fig.colorbar(img, ax=ax, extend='both')
         cb.locator = MaxNLocator(nbins=5)
         cb.update_ticks()
-
+        plt.tight_layout()
         plt.savefig(r"./figs/artfigs_phasediagacti1p_"+file_name+"dynimag_"+str(plot_trial)+".png")
+        plt.close()
 
         #plot dynimag with eigs
         scale_max = np.max(record_x)
@@ -100,5 +103,6 @@ for file_trial in range(len(file_name_list)):
 
         ax_inset = inset_axes(ax, width="30%", height="30%", loc='upper left')        
         artfigs_plot_eigs(eigs, ax=ax_inset)
+        plt.tight_layout()
         plt.savefig(r"figs/artfigs_phasediagacti1p_"+file_name+"dynimagwitheigs_"+str(plot_trial)+".png")
         plt.close()        
