@@ -20,7 +20,7 @@ from dyn_params import *
 from artfigs_ulits import *
 
 T, t_step, record_step = 100, 100, 10
-file_name_list = ['2dglobal','2dosc','2dbump','2dwave','2dchaos','2dwave']
+file_name_list = ['2dglobal','2dosc','2dbump','2dwave','2dchaos','stable']
 generate_params_list = [generate_params_dyn_global_new, generate_params_dyn_osc_new, generate_params_dyn_bump_new, generate_params_dyn_wave_new, generate_params_dyn_chaos_new, generate_params_dyn_wave_new]
 trial_params_list = [3,3,3,3,3,0]
 
