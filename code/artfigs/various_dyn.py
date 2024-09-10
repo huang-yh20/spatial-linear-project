@@ -31,6 +31,12 @@ for trial_plot in trange(len(file_name_list)):
     generate_params_func = generate_params_list[trial_plot]
     trial_params = trial_params_list[trial_plot]
 
+    #calc orderprams
+    calc_orderprams_bool = True
+    
+
+
+    #calc eigs
     p_net = generate_params_func(trial_params)
     calc_eigs_bool = False
     if os.path.exists(r"./data/artfigs_variousdyn_eigs_"+str(trial_plot)+"eigs.npy") and (not calc_eigs_bool):
@@ -74,6 +80,8 @@ for trial_plot in trange(len(file_name_list)):
     plt.savefig(r"./figs/artfigs_variousdyn_eigs_"+str(trial_plot)+".png")
     plt.close()
 
+
+    #plot dynimag
     record_x = np.load(r'./data/'+'dyn_record_'+file_name+'_'+'tanhlinear'+str(trial_params)+'.npy')
     record_x = activation_func(record_x)
     #scale_max = np.max(record_x)
