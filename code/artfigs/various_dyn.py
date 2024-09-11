@@ -26,10 +26,11 @@ repeat_num = 1
 
 p_simul_tanhlinear = Simul_Params(T = 40, t_step=100, record_step=10, activation_func=['tanh','linear'])
 t_show_onset, t_show_step, t_show_num, t_step_onset = 10, 4, 6, 400
+t_dynt_onset, t_dynt_end = 15, 30
 moran_radius = 5
 
 calc_orderprams_bool = True
-exc_plot_num, inh_plot_num = 8, 2
+exc_plot_num, inh_plot_num = 4, 1
 
 for trial_plot in trange(len(file_name_list)):
     file_name = file_name_list[trial_plot]
@@ -96,14 +97,14 @@ for trial_plot in trange(len(file_name_list)):
             np.save("./data/artfigs_orderprams_mean_"+file_name+".npy", orderprams_mean_array)
             np.save("./data/artfigs_orderprams_std_"+file_name+".npy", orderprams_std_array)
     
-    plt.bar(orderparams_name, orderprams_mean_array, yerr=orderprams_std_array, facecolor='none', edgecolor='black', error_kw={'ecolor': 'black'})
+    plt.bar(orderparams_name, orderprams_mean_array, yerr=orderprams_std_array, width=0.5, facecolor='none', edgecolor='black', error_kw={'ecolor': 'black'})
     ax = plt.gca()
     ax.set_ylabel("Value", fontsize=15)
     ax.set_yticks([0, 0.5, 1])
     ax.set_ylim((0, 1))
     ax.tick_params(axis='y', labelsize=15)
 
-    plt.savefig("./figs/artfigs_orderparams_"+file_name+".png")
+    plt.savefig("./figs/artfigs_variousdyn_orderparams_"+file_name+".png")
     plt.close()
 
 
@@ -153,26 +154,29 @@ for trial_plot in trange(len(file_name_list)):
     #plot dyn of neurons
     record_x = np.load(r"./data/artfigs_dynrec_"+file_name_list[trial_plot]+'_'+str(0)+r'.npy')
     plot_exc_neurons_list = list(np.random.randint(0, p_net.N_E, size=exc_plot_num))
-    plot_inh_neurons_list = list(np.random.randint(0, p_net.N_E, size=inh_plot_num))
+    plot_inh_neurons_list = list(np.random.randint(p_net.N_E, p_net.N_E + p_net.N_I, size=inh_plot_num))
 
     for neuron_index in plot_exc_neurons_list:
-        plt.plot(np.linspace(0, p_simul_tanhlinear.T, np.shape(record_x)[0]), record_x[:, neuron_index], color='red', label='Exc.')
-    for neuron_index in plot_exc_neurons_list:
-        plt.plot(np.linspace(0, p_simul_tanhlinear.T, np.shape(record_x)[0]), record_x[:, neuron_index], color='blue', label='inh.')
-    plt.legend()
-    ax = plt. gca()
+        plt.plot(np.linspace(t_dynt_onset, t_dynt_end, (t_dynt_end-t_dynt_onset)*p_simul_tanhlinear.t_step), record_x[t_dynt_onset*p_simul_tanhlinear.t_step:t_dynt_end*p_simul_tanhlinear.t_step, neuron_index], color='red', label='Exc.')
+    for neuron_index in plot_inh_neurons_list:
+        plt.plot(np.linspace(t_dynt_onset, t_dynt_end, (t_dynt_end-t_dynt_onset)*p_simul_tanhlinear.t_step), record_x[t_dynt_onset*p_simul_tanhlinear.t_step:t_dynt_end*p_simul_tanhlinear.t_step, neuron_index], color='blue', label='inh.')  
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = dict.fromkeys(labels, handles)
+    plt.legend(by_label.values(), by_label.keys())
+    ax = plt.gca()
     ax.set_xlabel("Time", fontsize=15)
     ax.tick_params(axis='x', labelsize=15)  
     ax.xaxis.set_major_locator(MaxNLocator(nbins=4)) 
     ax.set_ylabel("Activity", fontsize=15)
     ax.tick_params(axis='y', labelsize=15)  
     ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
+    plt.tight_layout()
     plt.savefig(r"./figs/artfigs_variousdyn_dynt_"+file_name+".png")
     plt.close()
     
 
     #plot dynimag
-    record_x = np.load(r'./data/'+'dyn_record_'+file_name+'_'+'tanhlinear'+str(trial_params)+'.npy')
+    record_x = np.load(r"./data/artfigs_dynrec_"+file_name_list[trial_plot]+'_'+str(0)+r'.npy')
     record_x = activation_func(record_x)
     #scale_max = np.max(record_x)
     scale_max = 1
