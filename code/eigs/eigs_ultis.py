@@ -57,7 +57,7 @@ def plot_eigs2D_diagram(file_name:str, changed_params:str, changed_params_latex:
 
                 finded_points_list = []
                 for repeat_trail in range(repeat_num):
-                    eigs = np.load(r'./data/' +file_name+ str(repeat_trail) + str(param_n) + 'eig.npy', eigs)
+                    eigs = np.load(r'./data/' +file_name+ str(repeat_trail) + str(param_n) + 'eig.npy')
                     try:
                         pred_label_index = label_list_pred_select.index(label)
                         added_points_index = find_points(eigs, lambda_list_pred_select[pred_label_index], degenerate_num(label))
@@ -68,42 +68,43 @@ def plot_eigs2D_diagram(file_name:str, changed_params:str, changed_params_latex:
                 imag_part_exp_mean.append(np.mean(np.imag(np.array(finded_points_list))))
                 real_part_exp_std.append(np.std(np.real(np.array(finded_points_list))))
                 imag_part_exp_std.append(np.std(np.imag(np.array(finded_points_list))))
-                if plot_line == 'real':
-                    plt.errorbar(changed_param_exp_list, real_part_exp_mean, yerr=real_part_exp_std, fmt=c_list[label_n]+'o',markersize=1, capsize=4)
-                    plt.ylabel("$Re(\\lambda)$",fontsize=15)
-                else: 
-                    plt.errorbar(changed_param_exp_list, imag_part_exp_mean, yerr=imag_part_exp_std, fmt=c_list[label_n]+'o',markersize=1, capsize=4)
-                    plt.ylabel("$Im(\\lambda)$",fontsize=15)
-                plt.legend(loc="lower right", labels=[label[1::] for label in label_plot_list])
-
-            ax = plt.gca()
-            ax.xaxis.set_major_locator(MaxNLocator(nbins=4)) 
-            ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
-            plt.xlabel(changed_params_latex,fontsize=15)
-            plt.ylabel("$Re(\\lambda)$",fontsize=15)
-            plt.xticks(fontsize=15)
-            plt.yticks(fontsize=15)
             if plot_line == 'real':
-                plt.savefig(r'../../figs/eigs_'+changed_params+'_real_outliers.png', bbox_inches='tight')
-            else:
-                plt.savefig(r'../../figs/eigs_'+changed_params+'_imag_outliers.png', bbox_inches='tight')
+                plt.errorbar(changed_param_exp_list, real_part_exp_mean, yerr=real_part_exp_std, fmt=c_list[label_n]+'o',markersize=1, capsize=4)
+                plt.ylabel("$Re(\\lambda)$",fontsize=15)
+            else: 
+                plt.errorbar(changed_param_exp_list, imag_part_exp_mean, yerr=imag_part_exp_std, fmt=c_list[label_n]+'o',markersize=1, capsize=4)
+                plt.ylabel("$Im(\\lambda)$",fontsize=15)
+            plt.legend(loc="lower right", labels=[label[1::] for label in label_plot_list])
+
+        ax = plt.gca()
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=4)) 
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
+        plt.xlabel(changed_params_latex,fontsize=15)
+        plt.ylabel("$Re(\\lambda)$",fontsize=15)
+        plt.xticks(fontsize=15)
+        plt.yticks(fontsize=15)
+        if plot_line == 'real':
+            plt.savefig(r'./figs/eigs_'+changed_params+'_real_outliers.png', bbox_inches='tight')
+        else:
+            plt.savefig(r'./figs/eigs_'+changed_params+'_imag_outliers.png', bbox_inches='tight')
+        plt.close()
     
     #以下是理论预测
     R_pred_line = []
-    for param_n in range(trial_num):
-        p_net = generate_eigs_params(param_n)
+    for param_n in range(trial_num_theo):
+        p_net = generate_eigs_params(param_n, trial_num_theo)
         radius = calc_pred_radius(p_net, dim=2)
         R_pred_line.append(radius)
-    plt.plot(np.array(changed_param_exp_list), R_pred_line,c='k',linewidth=1)
+    plt.plot(np.array(changed_param_theo_list), R_pred_line,c='k',linewidth=1)
     #以下是实际实验结果
     R_exp_line, R_exp_sigma = [], []
     for param_n in range(trial_num):
         R_list_one_par = []
-        for num in range(repeat_num):
+        for repeat_trail in range(repeat_num):
             p_net = generate_eigs_params(param_n)
             lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net,dim=2)
             
-            eigs = np.load(r'./data/' +file_name+ str(repeat_trail) + str(param_n) + 'eig.npy', eigs)
+            eigs = np.load(r'./data/' +file_name+ str(repeat_trail) + str(param_n) + 'eig.npy')
             eigs_select = eigs.copy()  
             eigs_select = get_eigs_diskpart(eigs_select, lambda_list_pred_select, label_list_pred_select)
             R_list_one_par.append(np.max(np.abs(eigs_select)))
@@ -121,4 +122,5 @@ def plot_eigs2D_diagram(file_name:str, changed_params:str, changed_params_latex:
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
 
-    plt.savefig(r'../../figs/eigs_'+changed_params+'_radius.jpg', bbox_inches='tight')
+    plt.savefig(r'./figs/eigs_'+changed_params+'_radius.jpg', bbox_inches='tight')
+    plt.close()
