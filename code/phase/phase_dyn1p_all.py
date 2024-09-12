@@ -35,10 +35,10 @@ for repeat_trial in range(repeat_num):
     # record_x = dyn_simul(p_net, p_simul, dim=2)
     # np.save(r"./data/phase_dynrec_"+'alpha_E_I_2'+'_'+str(trial)+ '_'+ str(repeat_trial)+r'.npy',record_x)
 
-    # p_simul = Simul_Params(T = T, t_step=t_step, record_step=record_step, activation_func=['tanh','linear'])
-    # p_net = generate_params1p_phase_eta(trial, trial_num)
-    # record_x = dyn_simul(p_net, p_simul, dim=2)
-    # np.save(r"./data/phase_dynrec_"+'eta'+'_'+str(trial)+ '_'+ str(repeat_trial)+r'.npy',record_x)
+    p_simul = Simul_Params(T = T, t_step=t_step, record_step=record_step, activation_func=['tanh','linear'])
+    p_net = generate_params1p_phase_eta(trial, trial_num)
+    record_x = dyn_simul(p_net, p_simul, dim=2)
+    np.save(r"./data/phase_dynrec_"+'eta'+'_'+str(trial)+ '_'+ str(repeat_trial)+r'.npy',record_x)
 
     p_simul = Simul_Params(T = T, t_step=t_step, record_step=record_step, activation_func=['tanh','linear'])
     p_net = generate_params1p_phase_alpha(trial, trial_num)

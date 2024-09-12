@@ -108,7 +108,7 @@ def generate_params_phase_g_bar_E_I_2(trial1:int, trial2:int, trial_num:int = 21
         )
     return p_net   
 
-def generate_params_phase_g_bar_IE_d_II(trial1:int, trial2:int, trial_num:int = 21):
+def generate_params_phase_d_II_g_bar_IE(trial1:int, trial2:int, trial_num:int = 21):
     trial_num = trial_num
 
     N_E, N_I = 22500, 5625

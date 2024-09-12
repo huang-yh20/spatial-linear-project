@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH -e \temp\%j.err
-#SBATCH -o \temp\%j.out
+#SBATCH -e temp\%j.err
+#SBATCH -o temp\%j.out
 #SBATCH -J spatial-linear
 
 #SBATCH --partition=IGIpcluster
@@ -14,6 +14,7 @@
 
 ###
 cd ../..
-trial=$TRIAL
+trial1=$TRIAL1
+trial2=$TRIAL2
 
-python ./code/phase/phase_diagram_all.py $trial
+python ./code/eigs/eigs2D_product.py $trial1 $trial2

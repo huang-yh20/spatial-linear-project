@@ -57,7 +57,7 @@ def plot_eigs2D_diagram(file_name:str, changed_params:str, changed_params_latex:
 
                 finded_points_list = []
                 for repeat_trail in range(repeat_num):
-                    eigs = np.load(r'./data/' +file_name+ str(repeat_trail) + str(param_n) + 'eig.npy')
+                    eigs = np.load(r'./data/' +file_name + str(repeat_trail) + str(param_n) + 'eig.npy')
                     try:
                         pred_label_index = label_list_pred_select.index(label)
                         added_points_index = find_points(eigs, lambda_list_pred_select[pred_label_index], degenerate_num(label))
