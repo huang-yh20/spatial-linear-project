@@ -39,7 +39,7 @@ for trial_plot in trange(len(file_name_list)):
     p_net = generate_params_func(trial_params)
 
     #calc orderprams
-    orderparams_name = ['Mean Acti.', 'Local Sync.', "Moran's Index", '$\phi$']
+    orderparams_name = ['Mean Acti.', 'Local Sync.', "Moran's Index", 'Freq Index']
     if (not calc_orderprams_bool) and os.path.exists("./data/artfigs_orderprams_mean_"+file_name+".npy"):
         orderprams_mean_array = np.load("./data/artfigs_orderprams_mean_"+file_name+".npy")
         orderprams_std_array = np.load("./data/artfigs_orderprams_std_"+file_name+".npy")
@@ -59,7 +59,7 @@ for trial_plot in trange(len(file_name_list)):
             activated_x_E_2d = activated_x[:,0:p_net.N_E].reshape((np.shape(activated_x)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
             local_sum = convolve(activated_x_E_2d, weight_matrix, mode='wrap')
             local_abs_sum = convolve(np.abs(activated_x_E_2d), weight_matrix, mode='wrap')
-            mean_localsync_all.append(local_abs_sum)
+            mean_localsync_all.append(np.abs(local_sum/(local_abs_sum +1e-9)))
 
             #moran index
             activated_x_E = activated_x[:, 0:p_net.N_E]
@@ -157,9 +157,9 @@ for trial_plot in trange(len(file_name_list)):
     plot_inh_neurons_list = list(np.random.randint(p_net.N_E, p_net.N_E + p_net.N_I, size=inh_plot_num))
 
     for neuron_index in plot_exc_neurons_list:
-        plt.plot(np.linspace(t_dynt_onset, t_dynt_end, (t_dynt_end-t_dynt_onset)*p_simul_tanhlinear.t_step), record_x[t_dynt_onset*p_simul_tanhlinear.t_step:t_dynt_end*p_simul_tanhlinear.t_step, neuron_index], color='red', label='Exc.')
+        plt.plot(np.linspace(t_dynt_onset, t_dynt_end, int((t_dynt_end-t_dynt_onset)*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step)), record_x[int(t_dynt_onset*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step):int(t_dynt_end*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step), neuron_index], color='red', label='Exc.')
     for neuron_index in plot_inh_neurons_list:
-        plt.plot(np.linspace(t_dynt_onset, t_dynt_end, (t_dynt_end-t_dynt_onset)*p_simul_tanhlinear.t_step), record_x[t_dynt_onset*p_simul_tanhlinear.t_step:t_dynt_end*p_simul_tanhlinear.t_step, neuron_index], color='blue', label='inh.')  
+        plt.plot(np.linspace(t_dynt_onset, t_dynt_end, int((t_dynt_end-t_dynt_onset)*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step)), record_x[int(t_dynt_onset*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step):int(t_dynt_end*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step), neuron_index], color='blue', label='Inh.')  
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict.fromkeys(labels, handles)
     plt.legend(by_label.values(), by_label.keys())

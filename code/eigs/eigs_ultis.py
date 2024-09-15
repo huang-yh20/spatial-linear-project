@@ -56,8 +56,8 @@ def plot_eigs2D_diagram(file_name:str, changed_params:str, changed_params_latex:
                 lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net,dim=2)
 
                 finded_points_list = []
-                for repeat_trail in range(repeat_num):
-                    eigs = np.load(r'./data/' +file_name + str(repeat_trail) + str(param_n) + 'eig.npy')
+                for repeat_trial in range(repeat_num):
+                    eigs = np.load(r'./data/eigs_' + file_name+ '_' + str(param_n) + '_' + str(repeat_trial) + 'eig.npy')
                     try:
                         pred_label_index = label_list_pred_select.index(label)
                         added_points_index = find_points(eigs, lambda_list_pred_select[pred_label_index], degenerate_num(label))
@@ -100,11 +100,11 @@ def plot_eigs2D_diagram(file_name:str, changed_params:str, changed_params_latex:
     R_exp_line, R_exp_sigma = [], []
     for param_n in range(trial_num):
         R_list_one_par = []
-        for repeat_trail in range(repeat_num):
+        for repeat_trial in range(repeat_num):
             p_net = generate_eigs_params(param_n)
             lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net,dim=2)
             
-            eigs = np.load(r'./data/' +file_name+ str(repeat_trail) + str(param_n) + 'eig.npy')
+            eigs = np.load(r'./data/eigs_' +file_name + '_' + str(param_n) + '_' + str(repeat_trial) + 'eig.npy')
             eigs_select = eigs.copy()  
             eigs_select = get_eigs_diskpart(eigs_select, lambda_list_pred_select, label_list_pred_select)
             R_list_one_par.append(np.max(np.abs(eigs_select)))

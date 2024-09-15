@@ -35,5 +35,11 @@ if trial == 4:
     changed_params = ['d_II', 'g_bar_IE']
     changed_params_latex = [r'$d_{II}$', r'$\bar{g}_{IE}$']
     p_simul = Simul_Params(T = 100, t_step=100, record_step=10, activation_func=['tanh','linear'])
-    plot_phase_diagram("d_II_g_bar_IE", changed_params, changed_params_latex, generate_params_phase_d_II_g_bar_IE, p_simul, repeat_num=5)
+    #TEMP
+    plot_phase_diagram("g_bar_IE_d_II", changed_params, changed_params_latex, generate_params_phase_d_II_g_bar_IE, p_simul, repeat_num=5)
+if trial == 5:
+    changed_params = ['d_II', 'g_bar_EE']
+    changed_params_latex = [r'$d_{II}$', r'$\bar{g}_{EE}$']
+    p_simul = Simul_Params(T = 100, t_step=100, record_step=10, activation_func=['tanh','linear'])
+    plot_phase_diagram("d_II_g_bar_EE_new", changed_params, changed_params_latex, generate_params_phase_d_II_g_bar_EE_new, p_simul, repeat_num=5)
 

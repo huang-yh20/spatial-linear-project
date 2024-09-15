@@ -47,7 +47,7 @@ for file_trial in range(len(file_name_list)):
         #plot eigs
         artfigs_plot_eigs(eigs)
         plt.tight_layout()
-        plt.savefig(r"figs/artfigs_phasediagacti1p_"+file_name+"eigs_"+str(plot_trial)+".png")
+        plt.savefig(r"figs/artfigs_phasediagacti1p_"+file_name+"_eigs_"+str(plot_trial)+".png")
         plt.close()
 
         #plot dyn_imag
@@ -75,7 +75,7 @@ for file_trial in range(len(file_name_list)):
         cb.locator = MaxNLocator(nbins=5)
         cb.update_ticks()
         plt.tight_layout()
-        plt.savefig(r"./figs/artfigs_phasediagacti1p_"+file_name+"dynimag_"+str(plot_trial)+".png")
+        plt.savefig(r"./figs/artfigs_phasediagacti1p_"+file_name+"_dynimag_"+str(plot_trial)+".png")
         plt.close()
 
         #plot dynimag with eigs
@@ -104,5 +104,5 @@ for file_trial in range(len(file_name_list)):
         ax_inset = inset_axes(ax, width="30%", height="30%", loc='upper left')        
         artfigs_plot_eigs(eigs, ax=ax_inset)
         plt.tight_layout()
-        plt.savefig(r"figs/artfigs_phasediagacti1p_"+file_name+"dynimagwitheigs_"+str(plot_trial)+".png")
+        plt.savefig(r"figs/artfigs_phasediagacti1p_"+file_name+"_dynimagwitheigs_"+str(plot_trial)+".png")
         plt.close()        

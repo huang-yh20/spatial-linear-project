@@ -87,6 +87,7 @@ for eig_trial in range(len(eigs_indice)):
     ax.tick_params(axis='y', labelsize=15)
     cb = fig.colorbar(img, ax=ax, extend='both')
     cb.locator = MaxNLocator(nbins=5)
+    cb.ax.set_title("Activity")
     cb.update_ticks()
     plt.tight_layout()
     plt.savefig(r"figs/artfigs_eigsandeigV2D_eigV_"+str(eig_trial)+".png")
