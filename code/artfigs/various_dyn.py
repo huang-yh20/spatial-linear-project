@@ -156,13 +156,13 @@ for trial_plot in trange(len(file_name_list)):
     plot_exc_neurons_list = list(np.random.randint(0, p_net.N_E, size=exc_plot_num))
     plot_inh_neurons_list = list(np.random.randint(p_net.N_E, p_net.N_E + p_net.N_I, size=inh_plot_num))
 
-    for neuron_index in plot_exc_neurons_list:
-        plt.plot(np.linspace(t_dynt_onset, t_dynt_end, int((t_dynt_end-t_dynt_onset)*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step)), record_x[int(t_dynt_onset*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step):int(t_dynt_end*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step), neuron_index], color='red', label='Exc.')
-    for neuron_index in plot_inh_neurons_list:
-        plt.plot(np.linspace(t_dynt_onset, t_dynt_end, int((t_dynt_end-t_dynt_onset)*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step)), record_x[int(t_dynt_onset*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step):int(t_dynt_end*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step), neuron_index], color='blue', label='Inh.')  
-    handles, labels = plt.gca().get_legend_handles_labels()
-    by_label = dict.fromkeys(labels, handles)
-    plt.legend(by_label.values(), by_label.keys())
+    plt.plot(np.linspace(t_dynt_onset, t_dynt_end, int((t_dynt_end-t_dynt_onset)*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step)), record_x[int(t_dynt_onset*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step):int(t_dynt_end*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step), plot_exc_neurons_list[0]], color='red', label='Exc.')
+    for neuron_index in plot_exc_neurons_list[1::]:
+        plt.plot(np.linspace(t_dynt_onset, t_dynt_end, int((t_dynt_end-t_dynt_onset)*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step)), record_x[int(t_dynt_onset*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step):int(t_dynt_end*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step), neuron_index], color='red')
+    plt.plot(np.linspace(t_dynt_onset, t_dynt_end, int((t_dynt_end-t_dynt_onset)*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step)), record_x[int(t_dynt_onset*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step):int(t_dynt_end*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step), plot_inh_neurons_list[0]], color='blue', label='Inh.')
+    for neuron_index in plot_inh_neurons_list[1::]:
+        plt.plot(np.linspace(t_dynt_onset, t_dynt_end, int((t_dynt_end-t_dynt_onset)*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step)), record_x[int(t_dynt_onset*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step):int(t_dynt_end*p_simul_tanhlinear.t_step/p_simul_tanhlinear.record_step), neuron_index], color='blue')  
+    plt.legend()
     ax = plt.gca()
     ax.set_xlabel("Time", fontsize=15)
     ax.tick_params(axis='x', labelsize=15)  
@@ -199,6 +199,7 @@ for trial_plot in trange(len(file_name_list)):
         ax.tick_params(axis='y', labelsize=15)
         cb = fig.colorbar(img, ax=ax, extend='both')
         cb.locator = MaxNLocator(nbins=5)
+        cb.ax.set_title("Firing Rate")
         cb.update_ticks()
         plt.tight_layout()
         plt.savefig(r"./figs/artfigs_variousdyn_dynimag_"+str(trial_plot)+"_"+str(trial_show)+".png")

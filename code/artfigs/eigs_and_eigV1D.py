@@ -65,6 +65,7 @@ for eig_trial in range(len(eigs_indice)):
     ax.tick_params(axis='x', labelsize=15)
     ax.tick_params(axis='y', labelsize=15)
     ax.legend(loc = 'upper right',fontsize=15)
+    plt.tight_layout()
     plt.savefig(r"figs/artfigs_eigsandeigV1D_eigV_"+str(eig_trial)+".png")
     plt.close()
 
