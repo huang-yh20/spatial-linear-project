@@ -24,9 +24,9 @@ generate_params_list = [generate_params_dyn_global_new, generate_params_dyn_osc_
 trial_params_list = [3,3,3,3,3,0]
 repeat_num = 1
 
-p_simul_tanhlinear = Simul_Params(T = 40, t_step=100, record_step=10, activation_func=['tanh','linear'])
-t_show_onset, t_show_step, t_show_num, t_step_onset = 10, 4, 6, 400
-t_dynt_onset, t_dynt_end = 15, 30
+p_simul_tanhlinear = Simul_Params(T = 100, t_step=100, record_step=10, activation_func=['tanh','linear'])
+t_show_onset, t_show_step, t_show_num, t_step_onset = 70, 4, 6, 800
+t_dynt_onset, t_dynt_end = 85, 100
 moran_radius = 5
 
 calc_orderprams_bool = True
@@ -39,7 +39,7 @@ for trial_plot in trange(len(file_name_list)):
     p_net = generate_params_func(trial_params)
 
     #calc orderprams
-    orderparams_name = ['Mean Acti.', 'Local Sync.', "Moran's Index", 'Freq Index']
+    orderparams_name = ['Mean Acti.', 'Local Sync.', "Moran's Index", 'Osc. Index']
     if (not calc_orderprams_bool) and os.path.exists("./data/artfigs_orderprams_mean_"+file_name+".npy"):
         orderprams_mean_array = np.load("./data/artfigs_orderprams_mean_"+file_name+".npy")
         orderprams_std_array = np.load("./data/artfigs_orderprams_std_"+file_name+".npy")
@@ -97,7 +97,7 @@ for trial_plot in trange(len(file_name_list)):
             np.save("./data/artfigs_orderprams_mean_"+file_name+".npy", orderprams_mean_array)
             np.save("./data/artfigs_orderprams_std_"+file_name+".npy", orderprams_std_array)
     
-    plt.bar(orderparams_name, orderprams_mean_array, yerr=orderprams_std_array, width=0.5, facecolor='none', edgecolor='black', error_kw={'ecolor': 'black'})
+    plt.bar(orderparams_name, orderprams_mean_array, yerr=orderprams_std_array, capsize=15, width=0.5, facecolor='none', edgecolor='black', error_kw={'ecolor': 'black'})
     ax = plt.gca()
     ax.set_ylabel("Value", fontsize=15)
     ax.set_yticks([0, 0.5, 1])
