@@ -25,7 +25,7 @@ trial_params_list = [3,3,3,3,3,0]
 repeat_num = 1
 
 p_simul_tanhlinear = Simul_Params(T = 100, t_step=100, record_step=10, activation_func=['tanh','linear'])
-t_show_onset, t_show_step, t_show_num, t_step_onset = 70, 4, 6, 800
+t_show_onset, t_show_step, t_show_num, t_step_onset = 70, 4, 6, 400
 t_dynt_onset, t_dynt_end = 85, 100
 moran_radius = 5
 
@@ -152,7 +152,7 @@ for trial_plot in trange(len(file_name_list)):
     plt.close()
 
     #plot dyn of neurons
-    record_x = np.load(r"./data/artfigs_dynrec_"+file_name_list[trial_plot]+'_'+str(0)+r'.npy')
+    record_x = np.load(r"./data/artfigs_dynrec_"+file_name_list[trial_plot]+'_'+str(1)+r'.npy')
     plot_exc_neurons_list = list(np.random.randint(0, p_net.N_E, size=exc_plot_num))
     plot_inh_neurons_list = list(np.random.randint(p_net.N_E, p_net.N_E + p_net.N_I, size=inh_plot_num))
 
