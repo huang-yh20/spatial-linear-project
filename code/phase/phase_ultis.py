@@ -19,10 +19,10 @@ from dyn_ultis import *
 #注意我很多坐标轴都设成0到1，所以发放率最大也要是1
 def plot_phase_diagram_axis_default(changed_params:str, changed_params_latex:str, generate_phase_params:callable, trial_num:int = 21):
     def custom_formatter(x, pos):
-        if x.is_integer():
-            return f'{x:.1f}'  
+        if isinstance(x, (int, np.integer)) or float(x).is_integer():
+            return f'{int(x)}'
         else:
-            return f'{x:.2f}'  
+            return f'{x:.2f}'
     
     showed_ticks = [0, (trial_num-1)//2, trial_num-1]
     ylabels = [(generate_phase_params(ticks,0,trial_num))._asdict()[changed_params[0]] for ticks in showed_ticks]
