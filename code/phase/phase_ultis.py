@@ -36,7 +36,7 @@ def plot_phase_diagram_axis_default(changed_params:str, changed_params_latex:str
     plt.gca().yaxis.set_major_formatter(FuncFormatter(custom_formatter))
 
 def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default):
-    calc_phase_diagram = False
+    calc_phase_diagram = True
     
     p_net = generate_phase_params(0, 0, trial_num)
     activation_func_dict = {"linear": activation_func_linear, "tanh":activation_func_tanh, "rectified_linear_lowthres":activation_func_rectified_linear_lowthres, "rectified_linear_highthres":activation_func_rectified_linear_highthres}
@@ -172,8 +172,8 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     plt.close()
 
     #magnitude of neural activity
-    if not calc_phase_diagram and os.path.exists("./data/phase_diag_mean_acti.npy"):
-        mean_acti = np.load("./data/phase_diag_mean_acti.npy")
+    if not calc_phase_diagram and os.path.exists("./data/phase_diag_"+file_name+"_mean_acti.npy"):
+        mean_acti = np.load("./data/phase_diag_"+file_name+"_mean_acti.npy")
     else:
         mean_acti_all_repeat = np.zeros((repeat_num, trial_num, trial_num))
         for repeat_trial in range(repeat_num):
@@ -183,7 +183,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                     activated_x = calc_activated_x(record_x)
                     mean_acti_all_repeat[repeat_trial, trial1, trial2] = np.mean(np.abs(activated_x[t_step_onset::,0:p_net.N_E]))
         mean_acti = np.mean(mean_acti_all_repeat, axis=0)
-        np.save("./data/phase_diag_mean_acti.npy", mean_acti)
+        np.save("./data/phase_diag_"+file_name+"_mean_acti.npy", mean_acti)
 
     plt.imshow(mean_acti, origin='lower', cmap='viridis', vmin=0, vmax=np.max(mean_acti))
     cb = plt.colorbar()
@@ -202,8 +202,8 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     mean_sync_all = np.zeros((repeat_num, trial_num, trial_num))
     weight_matrix = np.ones((2*moran_radius+1, 2*moran_radius+1))
     weight_matrix = weight_matrix[np.newaxis, :, :]
-    if not calc_phase_diagram and os.path.exists("./data/phase_diag_mean_local_sync.npy"):
-        mean_sync = np.load("./data/phase_diag_mean_local_sync.npy")
+    if not calc_phase_diagram and os.path.exists("./data/phase_diag_"+file_name+"_mean_local_sync.npy"):
+        mean_sync = np.load("./data/phase_diag_"+file_name+"_mean_local_sync.npy")
     else:
         for trial1 in trange(trial_num):
             for trial2 in range(trial_num):  
@@ -215,7 +215,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                     local_abs_sum = convolve(np.abs(activated_x_E_2d), weight_matrix, mode='wrap')
                 mean_sync_all[repeat_trial, trial1, trial2] = np.mean(np.abs(local_sum/(local_abs_sum +1e-9)))
         mean_sync = np.mean(mean_sync_all, axis=0)
-        np.save("./data/phase_diag_mean_local_sync.npy", mean_sync)
+        np.save("./data/phase_diag_"+file_name+"_mean_local_sync.npy", mean_sync)
     plt.imshow(mean_sync, origin='lower', cmap='viridis', vmin=0, vmax=np.max(mean_sync))
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=3)  
@@ -231,8 +231,8 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
 
     #global sync
     mean_sync = np.zeros((trial_num, trial_num))
-    if not calc_phase_diagram and os.path.exists("./data/phase_diag_mean_global_sync.npy"):
-        mean_sync = np.load("./data/phase_diag_mean_global_sync.npy")
+    if not calc_phase_diagram and os.path.exists("./data/phase_diag_"+file_name+"_mean_global_sync.npy"):
+        mean_sync = np.load("./data/phase_diag_"+file_name+"_mean_global_sync.npy")
     else:
         for trial1 in trange(trial_num):
             for trial2 in range(trial_num):
@@ -242,7 +242,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                     activated_x = calc_activated_x(record_x)
                     mean_sync_one_trial.append(np.mean(np.abs(np.sum(activated_x, axis=1))/np.sum(np.abs(activated_x), axis=1)))
                 mean_sync[trial1,trial2] = np.mean(np.abs(np.array(mean_sync_one_trial)))
-        np.save("./data/phase_diag_mean_global_sync.npy", mean_sync)
+        np.save("./data/phase_diag_"+file_name+"_mean_global_sync.npy", mean_sync)
 
     plt.imshow(mean_sync, origin='lower', cmap='viridis', vmin=0, vmax=np.max(mean_sync))
     cb = plt.colorbar()
@@ -259,8 +259,8 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
 
     #simul freq
     mean_freq = np.zeros((trial_num, trial_num))
-    if not calc_phase_diagram and os.path.exists("./data/phase_diag_mean_freq.npy"):
-        mean_freq = np.load("./data/phase_diag_mean_freq.npy")
+    if not calc_phase_diagram and os.path.exists("./data/phase_diag_"+file_name+"_mean_freq.npy"):
+        mean_freq = np.load("./data/phase_diag_"+file_name+"_mean_freq.npy")
     else:    
         for trial1 in trange(trial_num):
             for trial2 in range(trial_num):
@@ -277,7 +277,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                     mean_freq[trial1, trial2] = 0
                 else:
                     mean_freq[trial1, trial2] = np.mean(np.array(freq_list))  * (len(mean_freq)/(len(mean_freq) - freq_list.count(0)))
-        np.save("./data/phase_diag_mean_freq.npy",mean_freq)
+        np.save("./data/phase_diag_"+file_name+"_mean_freq.npy",mean_freq)
     plt.imshow(mean_freq, origin='lower', cmap='viridis', vmin=0)
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
@@ -292,8 +292,8 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
 
     #simul wavenum
     mean_wavenum = np.zeros((trial_num, trial_num))
-    if not calc_phase_diagram and os.path.exists("./data/phase_diag_mean_wavenum.npy"):
-        mean_wavenum = np.load("./data/phase_diag_mean_wavenum.npy")
+    if not calc_phase_diagram and os.path.exists("./data/phase_diag_"+file_name+"_mean_wavenum.npy"):
+        mean_wavenum = np.load("./data/phase_diag_"+file_name+"_mean_wavenum.npy")
     else:   
         for trial1 in trange(trial_num):
             for trial2 in range(trial_num):
@@ -312,7 +312,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                     mean_wavenum[trial1, trial2] = 0
                 else:
                     mean_wavenum[trial1, trial2] = np.mean(np.array(wavenum_list)) * (len(mean_wavenum)/(len(mean_wavenum) - wavenum_list.count(0)))
-        np.save("./data/phase_diag_mean_wavenum.npy", mean_wavenum)
+        np.save("./data/phase_diag_"+file_name+"_mean_wavenum.npy", mean_wavenum)
     plt.imshow(mean_wavenum, origin='lower', cmap='viridis', vmin=0)
     cb = plt.colorbar()
     cb.locator = MaxNLocator(nbins=5)
@@ -328,8 +328,8 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     mean_moran = np.zeros((trial_num, trial_num))
     weight_matrix = np.ones((2*moran_radius+1, 2*moran_radius+1))
     weight_matrix = weight_matrix[np.newaxis, :, :]
-    if not calc_phase_diagram and os.path.exists("./data/phase_diag_mean_moran.npy"):
-        mean_wavenum = np.load("./data/phase_diag_mean_moran.npy")
+    if not calc_phase_diagram and os.path.exists("./data/phase_diag_"+file_name+"_mean_moran.npy"):
+        mean_wavenum = np.load("./data/phase_diag_"+file_name+"_mean_moran.npy")
     else:   
         for trial1 in trange(trial_num):
             for trial2 in range(trial_num):
@@ -346,7 +346,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                     moran_index = np.mean(moran_index_time)
                     moran_list.append(moran_index)
                 mean_moran[trial1, trial2] = np.mean(np.array(moran_list))
-        np.save("./data/phase_diag_mean_moran.npy", mean_moran)
+        np.save("./data/phase_diag_"+file_name+"_mean_moran.npy", mean_moran)
 
     norm = mcolors.TwoSlopeNorm(vmin=-1, vcenter=0, vmax=1)
     plt.imshow(mean_moran, origin='lower', norm=norm, cmap=plt.cm.RdBu)
