@@ -17,13 +17,7 @@ sys.path.append("./code/dyn/")
 from dyn_ultis import *
 
 #注意我很多坐标轴都设成0到1，所以发放率最大也要是1
-def plot_phase_diagram_axis_default(changed_params:str, changed_params_latex:str, generate_phase_params:callable, trial_num:int = 21):
-    def custom_formatter(x, pos):
-        if isinstance(x, (int, np.integer)) or float(x).is_integer():
-            return f'{int(x)}'
-        else:
-            return f'{x:.2f}'
-    
+def plot_phase_diagram_axis_default(changed_params:str, changed_params_latex:str, generate_phase_params:callable, trial_num:int = 21):    
     showed_ticks = [0, (trial_num-1)//2, trial_num-1]
     ylabels = [(generate_phase_params(ticks,0,trial_num))._asdict()[changed_params[0]] for ticks in showed_ticks]
     xlabels = [(generate_phase_params(0,ticks,trial_num))._asdict()[changed_params[1]] for ticks in showed_ticks]
@@ -32,8 +26,6 @@ def plot_phase_diagram_axis_default(changed_params:str, changed_params_latex:str
     plt.xlabel(changed_params_latex[1],fontsize=15)
     plt.yticks(ticks=showed_ticks, labels=ylabels,fontsize=15)
     plt.xticks(ticks=showed_ticks, labels=xlabels,fontsize=15)
-    plt.gca().xaxis.set_major_formatter(FuncFormatter(custom_formatter))
-    plt.gca().yaxis.set_major_formatter(FuncFormatter(custom_formatter))
 
 def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default):
     calc_phase_diagram = True
