@@ -17,15 +17,23 @@ sys.path.append("./code/dyn/")
 from dyn_ultis import *
 
 #注意我很多坐标轴都设成0到1，所以发放率最大也要是1
-def plot_phase_diagram_axis_default(changed_params:str, changed_params_latex:str, generate_phase_params:callable, trial_num:int = 21):    
-    showed_ticks = [0, (trial_num-1)//2, trial_num-1]
-    ylabels = [(generate_phase_params(ticks,0,trial_num))._asdict()[changed_params[0]] for ticks in showed_ticks]
-    xlabels = [(generate_phase_params(0,ticks,trial_num))._asdict()[changed_params[1]] for ticks in showed_ticks]
+def plot_phase_diagram_axis_default(changed_params: str, changed_params_latex: str, generate_phase_params: callable, trial_num: int = 21):
+    showed_ticks = [0, (trial_num - 1) // 2, trial_num - 1]
+    
+    def format_label(value):
+        label = str(value)
+        if len(label) > 5:
+            return f"{value:.2f}"
+        return label
 
-    plt.ylabel(changed_params_latex[0],fontsize=15)
-    plt.xlabel(changed_params_latex[1],fontsize=15)
-    plt.yticks(ticks=showed_ticks, labels=ylabels,fontsize=15)
-    plt.xticks(ticks=showed_ticks, labels=xlabels,fontsize=15)
+    yticks_labels = [format_label(generate_phase_params(ticks, 0, trial_num)._asdict()[changed_params[0]]) for ticks in showed_ticks]
+    xticks_labels = [format_label(generate_phase_params(0, ticks, trial_num)._asdict()[changed_params[1]]) for ticks in showed_ticks]
+
+    plt.ylabel(changed_params_latex[0], fontsize=15)
+    plt.xlabel(changed_params_latex[1], fontsize=15)
+    plt.yticks(ticks=showed_ticks, labels=yticks_labels, fontsize=15)
+    plt.xticks(ticks=showed_ticks, labels=xticks_labels, fontsize=15)
+
 
 def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default):
     calc_phase_diagram = True
