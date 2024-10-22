@@ -56,13 +56,13 @@ for trial_plot in trange(len(file_name_list)):
             mean_acti_all.append(np.mean(np.abs(activated_x[t_step_onset::,0:p_net.N_E])))
             
             #local sync.
-            activated_x_E_2d = activated_x[:,0:p_net.N_E].reshape((np.shape(activated_x)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
+            activated_x_E_2d = activated_x[t_step_onset::,0:p_net.N_E].reshape((np.shape(activated_x)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
             local_sum = convolve(activated_x_E_2d, weight_matrix, mode='wrap')
             local_abs_sum = convolve(np.abs(activated_x_E_2d), weight_matrix, mode='wrap')
             mean_localsync_all.append(np.abs(local_sum/(local_abs_sum +1e-9)))
 
             #moran index
-            activated_x_E = activated_x[:, 0:p_net.N_E]
+            activated_x_E = activated_x[t_step_onset::, 0:p_net.N_E]
             centralized_activated_x_E = activated_x_E - np.mean(activated_x_E, axis=1)[:,np.newaxis]
             centralized_activated_x_E_2d = centralized_activated_x_E.reshape((np.shape(centralized_activated_x_E)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
             local_sum = convolve(centralized_activated_x_E_2d, weight_matrix, mode='wrap')
