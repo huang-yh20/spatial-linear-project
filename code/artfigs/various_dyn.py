@@ -57,7 +57,7 @@ for trial_plot in trange(len(file_name_list)):
             
             #local sync.
             activated_x_cut = activated_x[t_step_onset::,0:p_net.N_E]
-            activated_x_E_2d = activated_x_cut[:,0:p_net.N_E].reshape((np.shape(activated_x)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
+            activated_x_E_2d = activated_x_cut[:,0:p_net.N_E].reshape((np.shape(activated_x_cut)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
             local_sum = convolve(activated_x_E_2d, weight_matrix, mode='wrap')
             local_abs_sum = convolve(np.abs(activated_x_E_2d), weight_matrix, mode='wrap')
             mean_localsync_all.append(np.abs(local_sum/(local_abs_sum +1e-9)))
