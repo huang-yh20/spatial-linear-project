@@ -265,7 +265,7 @@ def generate_params_dyn_global_new(trial:int):
     conn_NEE, conn_NIE, conn_NEI, conn_NII = 200, 50, 200, 50
     J_EE, J_IE, J_EI, J_II = 4/rescale, 4/rescale, -8/rescale, -8/rescale
     sigma_EE, sigma_IE, sigma_EI, sigma_II = 8/rescale, 8/rescale, -16/rescale, -16/rescale
-    d_EE, d_IE, d_EI, d_II = 0.05, 0.05, 0.05, 0.05
+    d_EE, d_IE, d_EI, d_II = 0.1, 0.1, 0.1, 0.1
 
     rescale_list = list(rescale * np.array([1/0.5, 1/0.75, 1, 1/1.25, 1/1.5]))
     rescale = rescale_list[trial]

@@ -7,7 +7,7 @@ for trial1 in $(seq 0 $(($file_num - 1)))
 do
     for trial2 in $(seq 0 $(($param_num - 1)))
     do
-        sbatch --export=TRIAL1=$trial1,TRIAL2=$trial2 slurm_script.sh
+        sbatch --export=TRIAL1=$trial1,TRIAL2=$trial2 slurm_script_2D.sh
     done
 done
 
