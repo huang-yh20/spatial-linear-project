@@ -86,7 +86,8 @@ def generate_params_eigs2D_alpha(trial:int, trial_num:int = 6):
     alpha_list = np.linspace(0.2, 0.7, trial_num)
     
     alpha = alpha_list[trial]
-
+    conn_NEE, conn_NIE, conn_NEI, conn_NII = 2*np.pi*(d_EE**2)*N_E*alpha,2*np.pi*(d_IE**2)*N_I*alpha,2*np.pi*(d_EI**2)*N_E*alpha,2*np.pi*(d_II**2)*N_I*alpha
+    
     p_net = Network_Params(N_E = N_E, N_I = N_I,
         N_EE = conn_NEE, N_IE = conn_NIE, N_EI = conn_NEI, N_II = conn_NII,
         d_EE = d_EE, d_IE = d_IE, d_EI = d_EI, d_II = d_II,

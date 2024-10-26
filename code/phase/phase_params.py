@@ -353,4 +353,6 @@ def generate_params1p_phase_alpha_E_I_2(trial:int, trial_num:int = 21):
         g_bar_EE = g_bar_EE, g_bar_EI = g_bar_EI, g_bar_IE = g_bar_IE, g_bar_II = g_bar_II,
         g_EE = g_EE, g_EI = g_EI, g_IE = g_IE, g_II = g_II
         )
-    return p_net   
+    return p_net 
+
+  
