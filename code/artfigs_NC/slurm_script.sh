@@ -17,4 +17,4 @@ cd ../..
 trial1=$TRIAL1
 trial2=$TRIAL2
 
-python ./code/phase/Fig5_phase_prorec.py $trial1 $trial2
+python ./code/artfigs_NC/Fig5_phase_prorec.py $trial1 $trial2
