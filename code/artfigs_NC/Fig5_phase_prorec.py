@@ -7,7 +7,7 @@ from dyn_ultis import *
 from artfigs_NC_params import *
 from artfigs_NC_ultis import *
 
-T, t_step, record_step = 200, 100, 10
+T, t_step, record_step = 100, 100, 10
 repeat_num = 5
 trial_num = 21
 

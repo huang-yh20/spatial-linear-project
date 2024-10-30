@@ -20,7 +20,7 @@ from artfigs_NC_ultis import *
 
 file_name_list = ['2dstable','2dglobal','2dbump','2dosc','2dwave']
 generate_params_func = generate_params_phase_d_II_g_bar_II
-trial_params_list = [(10,10), (10,15), (5,10), (5,10), (15,10)]
+trial_params_list = [(10,10), (10,15), (5,10), (10,5), (15,10)]
 repeat_num = 1
 
 p_simul_tanhlinear = Simul_Params(T = 200, t_step=100, record_step=10, activation_func=['tanh','linear'])
