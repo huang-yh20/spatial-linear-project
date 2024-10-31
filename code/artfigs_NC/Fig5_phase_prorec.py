@@ -17,6 +17,6 @@ trial1, trial2 = int(args[0]), int(args[1])
 
 for repeat_trial in range(0,repeat_num):
     p_simul = Simul_Params(T = T, t_step=t_step, record_step=record_step, activation_func=['tanh','linear'])
-    p_net = generate_params_phase_d_II_g_bar_II(trial1, trial2, trial_num)
+    p_net = generate_params_phase_d_II_g_bar_II_L(trial1, trial2, trial_num)
     record_x = dyn_simul(p_net, p_simul, dim=2)
-    np.save(r"./data/artfigs_NC_"+'d_II_g_bar_II'+'_'+str(trial1)+'_'+str(trial2)+'_'+ str(repeat_trial)+r'.npy',record_x)
+    np.save(r"./data/artfigs_NC_"+'d_II_g_bar_II_L'+'_'+str(trial1)+'_'+str(trial2)+'_'+ str(repeat_trial)+r'.npy',record_x)
