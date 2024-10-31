@@ -128,7 +128,6 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     plt.close()
 
 
-
     #magnitude of neural activity
     if not calc_phase_diagram and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_acti.npy"):
         mean_acti = np.load("./data/artfigs_NC_"+file_name+"_mean_acti.npy")

@@ -49,7 +49,7 @@ def generate_params_phase_d_II_g_bar_II_L(trial1:int, trial2:int, trial_num:int 
     conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
     g_EE, g_EI, g_IE, g_II = 0.1,0.1,0.1,0.1
 
-    d_II_list = np.linspace(0.01,0.1,trial_num)
+    d_II_list = np.linspace(0.02,0.1,trial_num)
     d_II = d_II_list[trial1]
     conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
 
