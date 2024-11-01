@@ -276,7 +276,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                 if freq_list.count(0) >= (0.5 * repeat_num):
                     mean_freq[trial1, trial2] = 0
                 else:
-                    mean_freq[trial1, trial2] = np.mean(np.array(freq_list))  * (len(mean_freq)/(len(mean_freq) - freq_list.count(0)))
+                    mean_freq[trial1, trial2] = np.mean(np.array(freq_list))  * (len(freq_list)/(len(freq_list) - freq_list.count(0)))
         np.save("./data/phase_diag_"+file_name+"_mean_freq.npy",mean_freq)
     plt.imshow(mean_freq, origin='lower', cmap='viridis', vmin=0)
     cb = plt.colorbar()
