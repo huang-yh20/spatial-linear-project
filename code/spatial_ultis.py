@@ -3,6 +3,7 @@ import numpy as np
 import pickle as pk
 import scipy.sparse as spa
 import scipy.sparse.linalg as spalin
+
 from collections import namedtuple
 
 #定义一些参数
@@ -101,6 +102,118 @@ def generate_field(p:Network_Params, dist_list):
     J = J_mean * conn_prob
     return J
 
+#直接产生稀疏矩阵，目的是减少产生过程中的内存占用
+def generate_net_sparse(p:Network_Params, dim=2, homo_fix_point = False):
+    def calc_dist_one_neuron(neuron_index:int , p:Network_Params, dim = 2):
+        if dim == 1:
+            loc_E = np.linspace(0, 1, p.N_E)
+            loc_I = np.linspace(0, 1, p.N_I)
+            loc = np.hstack((loc_E, loc_I))
+            dist = np.abs(loc[neuron_index] - loc)
+            return (dist,)
+        elif dim == 2:
+            loc_E_x = (np.ones((int(np.ceil(np.sqrt(p.N_E))),1)).dot(np.linspace(0, 1, int(np.ceil(np.sqrt(p.N_E)))).reshape((1,-1)))).reshape(-1)
+            loc_E_y = (np.ones((int(np.ceil(np.sqrt(p.N_E))),1)).dot(np.linspace(0, 1, int(np.ceil(np.sqrt(p.N_E)))).reshape((1,-1)))).T.reshape(-1)
+            loc_I_x = (np.ones((int(np.ceil(np.sqrt(p.N_I))),1)).dot(np.linspace(0, 1, int(np.ceil(np.sqrt(p.N_I)))).reshape((1,-1)))).reshape(-1)
+            loc_I_y = (np.ones((int(np.ceil(np.sqrt(p.N_I))),1)).dot(np.linspace(0, 1, int(np.ceil(np.sqrt(p.N_I)))).reshape((1,-1)))).T.reshape(-1)
+            loc_x = np.hstack((loc_E_x[0:p.N_E], loc_I_x[0:p.N_I])) 
+            loc_y = np.hstack((loc_E_y[0:p.N_E], loc_I_y[0:p.N_I])) 
+            dist_x = np.abs(loc_x[neuron_index] - loc_x)
+            dist_y = np.abs(loc_y[neuron_index] - loc_y)
+            return (dist_x,dist_y)
+        else: 
+            print('dimension error!')
+        
+    J_EE, J_EI, J_IE, J_II = p.g_bar_EE/p.N_EE, p.g_bar_EI/p.N_EI, p.g_bar_IE/p.N_IE, p.g_bar_II/p.N_II
+    sigma_EE, sigma_EI, sigma_IE, sigma_II = p.g_EE/np.sqrt(p.N_EE), p.g_EI/np.sqrt(p.N_EI), p.g_IE/np.sqrt(p.N_IE), p.g_II/np.sqrt(p.N_II)
+
+    J_coo_row_list, J_coo_col_list, J_coo_data_list = [], [], []
+
+    if not homo_fix_point:
+        #一列一列地构建这个稀疏矩阵，neuron_index表示应当是哪一列
+        d_list = np.block([np.ones(p.N_E) * p.d_EE, np.ones(p.N_I) * p.d_IE])
+        for neuron_index in range(p.N_E):
+            dist_one_neuron = calc_dist_one_neuron(neuron_index, p, dim=dim)
+            dist_coef = np.ones(p.N_E+p.N_I)
+            for dist in dist_one_neuron:
+                dist_coef *= wrapped_Guassian(dist, d_list)
+            conn_prob = np.block([np.ones(shape=(p.N_E,))*p.N_EE/p.N_E, np.ones(shape=(p.N_I,))*p.N_IE/p.N_I]) * dist_coef
+            conn_syna = np.random.binomial(1, conn_prob, size=(p.N_E+p.N_I,))
+
+            J_coo_row_list += list(np.where(conn_syna > 0)[0])
+            J_coo_col_list += [neuron_index] * np.sum(conn_syna)
+            J_coo_data_list += list(np.ones(shape=(np.sum(conn_syna[0:p.N_E]),))*J_EE + np.random.randn(np.sum(conn_syna[0:p.N_E]))*sigma_EE)
+            J_coo_data_list += list(np.ones(shape=(np.sum(conn_syna[p.N_E:p.N_E+p.N_I]),))*J_IE + np.random.randn(np.sum(conn_syna[p.N_E:p.N_E+p.N_I]))*sigma_IE)
+        
+        d_list = np.block([np.ones(p.N_E) * p.d_EI, np.ones(p.N_I) * p.d_II])
+        for neuron_index in range(p.N_E, p.N_E + p.N_I):
+            dist_one_neuron = calc_dist_one_neuron(neuron_index, p, dim=dim)
+            dist_coef = np.ones(p.N_E+p.N_I)
+            for dist in dist_one_neuron:
+                dist_coef *= wrapped_Guassian(dist, d_list)
+            conn_prob = np.block([np.ones(shape=(p.N_E,))*p.N_EI/p.N_E, np.ones(shape=(p.N_I,))*p.N_II/p.N_I]) * dist_coef
+            conn_syna = np.random.binomial(1, conn_prob, size=(p.N_E+p.N_I,))
+
+            J_coo_row_list += list(np.where(conn_syna > 0)[0])
+            J_coo_col_list += [neuron_index] * np.sum(conn_syna)
+            J_coo_data_list += list(np.ones(shape=(np.sum(conn_syna[0:p.N_E]),))*J_EI + np.random.randn(np.sum(conn_syna[0:p.N_E]))*sigma_EI)
+            J_coo_data_list += list(np.ones(shape=(np.sum(conn_syna[p.N_E:p.N_E+p.N_I]),))*J_II + np.random.randn(np.sum(conn_syna[p.N_E:p.N_E+p.N_I]))*sigma_II)
+        
+    else:
+        #一列一列地构建这个稀疏矩阵，neuron_index表示应当是哪一列
+        d_list = np.block([np.ones(p.N_E) * p.d_EE, np.ones(p.N_I) * p.d_EI])
+        for neuron_index in range(p.N_E):
+            dist_one_neuron = calc_dist_one_neuron(neuron_index, p, dim=dim)
+            dist_coef = np.ones(p.N_E+p.N_I)
+            for dist in dist_one_neuron:
+                dist_coef *= wrapped_Guassian(dist, d_list)
+
+            conn_prob = dist_coef[0:p.N_E]
+            conn_prob = conn_prob/np.sum(conn_prob)
+            conn_syna_EE = np.random.choice(list(np.arange(0, p.N_E)), int(p.N_EE), replace=False, p=conn_prob)
+            J_coo_row_list += [neuron_index] * len(list(conn_syna_EE))
+            J_coo_col_list += list(conn_syna_EE)
+            data_syna_EE = J_EE + sigma_EE * np.random.randn(len(list(conn_syna_EE)))
+            data_syna_EE = data_syna_EE - (np.mean(data_syna_EE) - J_EE)
+            J_coo_data_list += list(data_syna_EE)
+
+            conn_prob = dist_coef[p.N_E:p.N_E+p.N_I]
+            conn_prob = conn_prob/np.sum(conn_prob)
+            conn_syna_EI = np.random.choice(list(np.arange(p.N_E, p.N_E+p.N_I)), int(p.N_EI*p.N_I/p.N_E), replace=False, p=conn_prob)
+            J_coo_row_list += [neuron_index] * len(list(conn_syna_EI))
+            J_coo_col_list += list(conn_syna_EI)
+            data_syna_EI = J_EI + sigma_EI * np.random.randn(len(list(conn_syna_EI)))
+            data_syna_EI = data_syna_EI - (np.mean(data_syna_EI) - J_EI)
+            J_coo_data_list += list(data_syna_EI)
+
+        d_list = np.block([np.ones(p.N_E) * p.d_IE, np.ones(p.N_I) * p.d_II])
+        for neuron_index in range(p.N_E, p.N_E + p.N_I):
+            dist_one_neuron = calc_dist_one_neuron(neuron_index, p, dim=dim)
+            dist_coef = np.ones(p.N_E+p.N_I)
+            for dist in dist_one_neuron:
+                dist_coef *= wrapped_Guassian(dist, d_list)
+
+            conn_prob = dist_coef[0:p.N_E]
+            conn_prob = conn_prob/np.sum(conn_prob)
+            conn_syna_IE = np.random.choice(list(np.arange(0, p.N_E)), int(p.N_IE*p.N_E/p.N_I), replace=False, p=conn_prob)
+            J_coo_row_list += [neuron_index] * len(list(conn_syna_IE))
+            J_coo_col_list += list(conn_syna_IE)
+            data_syna_IE = J_IE + sigma_IE * np.random.randn(len(list(conn_syna_IE)))
+            data_syna_IE = data_syna_IE - (np.mean(data_syna_IE) - J_IE)
+            J_coo_data_list += list(data_syna_IE)
+
+            conn_prob = dist_coef[p.N_E:p.N_E+p.N_I]
+            conn_prob = conn_prob/np.sum(conn_prob)
+            conn_syna_II = np.random.choice(list(np.arange(p.N_E, p.N_E+p.N_I)), int(p.N_II), replace=False, p=conn_prob)
+            J_coo_row_list += [neuron_index] * len(list(conn_syna_II))
+            J_coo_col_list += list(conn_syna_II)
+            data_syna_II = J_II + sigma_II * np.random.randn(len(list(conn_syna_II)))
+            data_syna_II = data_syna_II - (np.mean(data_syna_II) - J_II)
+            J_coo_data_list += list(data_syna_II)
+        
+    J_spa = spa.coo_matrix((J_coo_data_list, (J_coo_row_list, J_coo_col_list)), shape=(p.N_E+p.N_I, p.N_E+p.N_I))
+    return J_spa
+            
 #理论预测圆形部分半径
 def calc_pred_radius(p:Network_Params, dim = 1):
     J_EE, J_EI, J_IE, J_II = p.g_bar_EE/p.N_EE, p.g_bar_EI/p.N_EI, p.g_bar_IE/p.N_IE, p.g_bar_II/p.N_II

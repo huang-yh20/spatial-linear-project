@@ -255,7 +255,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     else:   
         for trial1 in trange(trial_num):
             for trial2 in range(trial_num):
-                wavenum_list = []
+                wavenum_list_temp = []
                 for repeat_trial in range(repeat_num):
                     record_x = np.load(r"./data/artfigs_NC_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
                     activated_x = calc_activated_x(record_x)    
@@ -265,11 +265,11 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                     sp_mean = sp_mean[0:int(p_net.N_E//2), 0:int(p_net.N_E//2)]
                     max_wavenum_tuple = np.where(sp_mean == np.max(sp_mean))
                     max_wavenum = np.sqrt(max_wavenum_tuple[0][0]**2 + max_wavenum_tuple[1][0]**2)
-                    wavenum_list.append(max_wavenum)
+                    wavenum_list_temp.append(max_wavenum)
                 if wavenum_list.count(0) >= (0.5 * repeat_num):
                     mean_wavenum[trial1, trial2] = 0
                 else:
-                    mean_wavenum[trial1, trial2] = np.mean(np.array(wavenum_list)) * (len(mean_wavenum)/(len(mean_wavenum) - wavenum_list.count(0)))
+                    mean_wavenum[trial1, trial2] = np.mean(np.array(wavenum_list_temp)) * (len(wavenum_list_temp)/(len(wavenum_list_temp) - wavenum_list_temp.count(0)))
         np.save("./data/artfigs_NC_"+file_name+"_mean_wavenum.npy", mean_wavenum)
     plt.imshow(mean_wavenum, origin='lower', cmap='viridis', vmin=0)
     cb = plt.colorbar()

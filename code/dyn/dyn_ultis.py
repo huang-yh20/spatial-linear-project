@@ -46,9 +46,10 @@ def dyn_simul(p_net:Network_Params, p_simul:Simul_Params, dim=1):
 
     external_input = external_input_noise
 
-    dist_list = calc_dist(p_net, dim = dim)
-    J = (generate_net(p_net, dist_list)).astype(np.float32)
-    J_spa = spa.csr_matrix(J)
+    # dist_list = calc_dist(p_net, dim = dim)
+    # J = (generate_net(p_net, dist_list)).astype(np.float32)
+    # J_spa = spa.csr_matrix(J)
+    J_spa = generate_net_sparse(p_net, dim = dim)
     x = np.zeros((p_net.N_E+p_net.N_I,))
     
     record_x = []
