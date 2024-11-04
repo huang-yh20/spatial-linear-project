@@ -266,7 +266,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                     max_wavenum_tuple = np.where(sp_mean == np.max(sp_mean))
                     max_wavenum = np.sqrt(max_wavenum_tuple[0][0]**2 + max_wavenum_tuple[1][0]**2)
                     wavenum_list_temp.append(max_wavenum)
-                if wavenum_list.count(0) >= (0.5 * repeat_num):
+                if wavenum_list_temp.count(0) >= (0.5 * repeat_num):
                     mean_wavenum[trial1, trial2] = 0
                 else:
                     mean_wavenum[trial1, trial2] = np.mean(np.array(wavenum_list_temp)) * (len(wavenum_list_temp)/(len(wavenum_list_temp) - wavenum_list_temp.count(0)))
