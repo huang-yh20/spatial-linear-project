@@ -41,11 +41,10 @@ def plot_phase_diagram_axis_default(changed_params: str, changed_params_latex: s
 def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default):
     calc_phase_diagram = True
     t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1
-    trial_num_theo = 21 #TEMP
+    trial_num_theo = 11 #TEMP
     moran_radius = 5
     
     p_net = generate_phase_params(0, 0, trial_num)
-    activation_func_dict = {"linear": activation_func_linear, "tanh":activation_func_tanh, "rectified_linear_lowthres":activation_func_rectified_linear_lowthres, "rectified_linear_highthres":activation_func_rectified_linear_highthres}
     if type(p_simul.activation_func) == str:
         activation_func_list = [activation_func_dict[p_simul.activation_func], activation_func_dict[p_simul.activation_func]]
     elif type(p_simul.activation_func) == list:
@@ -86,6 +85,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     for trial1 in trange(trial_num_theo):
         for trial2 in range(trial_num_theo):
             p_net = generate_phase_params(trial1, trial2, trial_num_theo)
+            p_net = calc_eff_p_net(p_net, p_simul)
             radius = calc_pred_radius(p_net, dim=2)
             radius_list[trial1, trial2] = radius
             lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net, dim=2)
@@ -127,7 +127,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     plt.savefig("./figs/artfigs_NC_"+file_name+"_phase.png")
     plt.close()
 
-
+'''
     #magnitude of neural activity
     if not calc_phase_diagram and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_acti.npy"):
         mean_acti = np.load("./data/artfigs_NC_"+file_name+"_mean_acti.npy")
@@ -461,4 +461,4 @@ def artfigs_plot_eigs(eigs:np.ndarray, ax = None, eigs_axislim: Callable = eigs_
     ax.scatter(real_part, imag_part, s=3, c='none', marker='o', edgecolors='k')
     if axvline:
         ax.axvline(x=1,c='gray',ls='--')
-
+'''

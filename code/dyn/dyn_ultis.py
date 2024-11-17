@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.sparse as spa
 import scipy.sparse.linalg as spalin
+from scipy.optimize import fsolve
 from scipy.ndimage import gaussian_filter,gaussian_filter1d
 from tqdm import trange
 import matplotlib.colors as mcolors
@@ -32,24 +33,37 @@ def activation_func_rectified_linear_lowthres(x):
 def activation_func_rectified_linear_highthres(x):
     max_firing_rate = 5
     return np.minimum(max_firing_rate, np.maximum(-max_firing_rate, x))
-activation_func_dict = {"linear": activation_func_linear, "tanh":activation_func_tanh, "rectified_linear_lowthres":activation_func_rectified_linear_lowthres, "rectified_linear_highthres":activation_func_rectified_linear_highthres}
+def activation_func_thres_linear(x):
+    return np.maximum(0, x)
+def activation_func_thres_powerlaw(x):
+    return (np.maximum(0, x))**2
+def activation_func_shifted_sigmoid(x):
+    max_rate, V_th, sigma = 10, 20, 5
+    return max_rate/(1 + np.exp(-(x - V_th)/sigma))
+
+activation_func_dict = {"linear": activation_func_linear, "tanh":activation_func_tanh, "rectified_linear_lowthres":activation_func_rectified_linear_lowthres, "rectified_linear_highthres":activation_func_rectified_linear_highthres,
+                        "thres_linear": activation_func_thres_linear, "thres_powerlaw": activation_func_thres_powerlaw, "shifted_sigmoid":activation_func_shifted_sigmoid}
 
 #以下是外界输入，返回一个tuple，代表非噪声项和噪声项
 def external_input_noise(t, p_net:Network_Params):
-    return (0, 0.1*(np.random.randn(p_net.N_E+p_net.N_I).astype(np.float32)))
+    return (np.zeros(p_net.N_E+p_net.N_I), 0.1*(np.random.randn(p_net.N_E+p_net.N_I).astype(np.float32)))
 
-def dyn_simul(p_net:Network_Params, p_simul:Simul_Params, dim=1):
+def external_input_DC_noise(t, p_net:Network_Params):
+    return (np.ones(p_net.N_E+p_net.N_I), 0.1*(np.random.randn(p_net.N_E+p_net.N_I).astype(np.float32)))
+external_input_dict = {"noise": external_input_noise, "DC_noise": external_input_DC_noise}
+
+def dyn_simul(p_net:Network_Params, p_simul:Simul_Params, dim=1, homo_fix_point=False):
     if type(p_simul.activation_func) == str:
         activation_func_list = [activation_func_dict[p_simul.activation_func], activation_func_dict[p_simul.activation_func]]
     elif type(p_simul.activation_func) == list:
         activation_func_list = [activation_func_dict[p_simul.activation_func[0]], activation_func_dict[p_simul.activation_func[1]]]
 
-    external_input = external_input_noise
+    external_input = external_input_dict[p_simul.external_input]
 
     # dist_list = calc_dist(p_net, dim = dim)
     # J = (generate_net(p_net, dist_list)).astype(np.float32)
     # J_spa = spa.csr_matrix(J)
-    J_spa = generate_net_sparse(p_net, dim = dim)
+    J_spa = generate_net_sparse(p_net, dim = dim, homo_fix_point=homo_fix_point)
     x = np.zeros((p_net.N_E+p_net.N_I,))
     
     record_x = []
@@ -250,3 +264,61 @@ def record_to_gif():
                 record_x = np.load(r'./data/'+'dyn_record_'+file_name+'_'+activation_func_str+str(trial)+'.npy')
                 product_gif(record_x, p_net=None, p_simul = p_simul, file_name='dyn_gif_'+file_name+'_'+activation_func_str+str(trial), dim=2)
                 product_gif(record_x, p_net=None, p_simul = p_simul, file_name='dyn_gif_smoothed_'+file_name+'_'+activation_func_str+str(trial), dim=2, filter=True)
+
+#TODO externel input
+def find_dyn_fix_point(p_net: Network_Params, p_simul: Simul_Params):
+    if type(p_simul.activation_func) == str:
+        activation_func_list = [activation_func_dict[p_simul.activation_func], activation_func_dict[p_simul.activation_func]]
+    elif type(p_simul.activation_func) == list:
+        activation_func_list = [activation_func_dict[p_simul.activation_func[0]], activation_func_dict[p_simul.activation_func[1]]]
+    external_input = external_input_dict[p_simul.external_input]
+
+    def df(x):
+        dx_dt = np.array([0.0,0.0])
+        dx_dt[0] = -x[0] + p_net.g_bar_EE * activation_func_list[0](x[0]) + p_net.g_bar_EI * p_net.N_I / p_net.N_E * activation_func_list[1](x[1]) + np.mean(external_input(0, p_net)[0][0:p_net.N_E])
+        dx_dt[1] = -x[1] + p_net.g_bar_IE * activation_func_list[0](x[0]) * p_net.N_E / p_net.N_I + p_net.g_bar_II * activation_func_list[1](x[1]) + np.mean(external_input(0, p_net)[0][p_net.N_E:p_net.N_E+p_net.N_I])
+        return dx_dt
+
+    initial_guesses = [np.random.randn(2) * 10 for _ in range(50)]
+
+    fixed_points = []
+    for guess in initial_guesses:
+        point = fsolve(df, guess)
+        if np.sqrt((np.array(df(point)) ** 2).sum()) < 1e-3:
+            if not any(np.allclose(point, fp, atol=1e-3) for fp in fixed_points):
+                fixed_points.append(point)
+    return fixed_points
+    
+
+def calc_eff_p_net(p_net: Network_Params, p_simul: Simul_Params):
+    if type(p_simul.activation_func) == str:
+        activation_func_list = [activation_func_dict[p_simul.activation_func], activation_func_dict[p_simul.activation_func]]
+    elif type(p_simul.activation_func) == list:
+        activation_func_list = [activation_func_dict[p_simul.activation_func[0]], activation_func_dict[p_simul.activation_func[1]]]
+    external_input = external_input_noise    
+    eps = 1e-5
+
+    fixed_points = find_dyn_fix_point(p_net, p_simul)
+
+    #TODO: select the correct fix point
+    fixed_points = sorted(fixed_points, key=lambda x: x[0])
+    if len(fixed_points) == 1:
+        fixed_point = fixed_points[0]
+    elif len(fixed_points) == 2:
+        fixed_point = fixed_points[1]
+    elif len(fixed_points) == 3:
+        fixed_point = fixed_points[1]
+    else:
+        print("fixed points number error!", len(fixed_points))
+
+    d_phi_list = [0.0, 0.0]
+    d_phi_list[0] = (activation_func_list[0](fixed_point[0] + eps) - activation_func_list[0](fixed_point[0] - eps))/(2 * eps)
+    d_phi_list[1] = (activation_func_list[1](fixed_point[1] + eps) - activation_func_list[1](fixed_point[1] - eps))/(2 * eps)
+
+    p_net_eff = Network_Params(N_E = p_net.N_E, N_I = p_net.N_I,
+        N_EE = p_net.N_EE, N_IE = p_net.N_IE, N_EI = p_net.N_EI, N_II = p_net.N_II,
+        d_EE = p_net.d_EE, d_IE = p_net.d_IE, d_EI = p_net.d_EI, d_II = p_net.d_II,
+        g_bar_EE = p_net.g_bar_EE * d_phi_list[0], g_bar_EI = p_net.g_bar_EI * d_phi_list[1], g_bar_IE = p_net.g_bar_IE * d_phi_list[0], g_bar_II = p_net.g_bar_II * d_phi_list[1],
+        g_EE = p_net.g_EE * d_phi_list[0], g_EI = p_net.g_EI * d_phi_list[1], g_IE = p_net.g_IE * d_phi_list[0], g_II = p_net.g_II * d_phi_list[1])
+    
+    return p_net_eff

@@ -1,10 +1,4 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import scipy.sparse as spa
-import scipy.sparse.linalg as spalin
-from tqdm import trange
-import matplotlib.colors as mcolors
-import imageio
 import sys
 sys.path.append("./code/")
 from spatial_ultis import *
