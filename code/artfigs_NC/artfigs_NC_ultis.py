@@ -41,7 +41,7 @@ def plot_phase_diagram_axis_default(changed_params: str, changed_params_latex: s
 def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default):
     calc_phase_diagram = True
     t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1
-    trial_num_theo = 11 #TEMP
+    trial_num_theo = 61 #TEMP
     moran_radius = 5
     
     p_net = generate_phase_params(0, 0, trial_num)
@@ -76,49 +76,63 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     colors = ['white', 'gray', 'blue', 'yellow', 'green', 'pink']
     cmap_phase = ListedColormap(colors)
 
-    radius_list = np.zeros((trial_num_theo, trial_num_theo))
-    max_real_list = np.zeros((trial_num_theo, trial_num_theo))
-    max_imag_list = np.zeros((trial_num_theo, trial_num_theo))
-    phase_diagram = np.full((trial_num_theo, trial_num_theo), np.nan)
-    wavenum_list = np.zeros((trial_num_theo, trial_num_theo))
-    freq_list = np.zeros((trial_num_theo, trial_num_theo))
-    for trial1 in trange(trial_num_theo):
-        for trial2 in range(trial_num_theo):
-            p_net = generate_phase_params(trial1, trial2, trial_num_theo)
-            p_net = calc_eff_p_net(p_net, p_simul)
-            radius = calc_pred_radius(p_net, dim=2)
-            radius_list[trial1, trial2] = radius
-            lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net, dim=2)
-            real_part_pred_select = np.real(lambda_list_pred_select)
-            imag_part_pred_select = np.imag(lambda_list_pred_select)
-            if len(lambda_list_pred_select) != 0:
-                max_real_index = np.argmax(real_part_pred_select)
-                max_real_list[trial1, trial2] = real_part_pred_select[max_real_index]
-                max_imag_list[trial1, trial2] = imag_part_pred_select[max_real_index]
-                wavenum = label_list_pred_select[max_real_index]
-                wavenum_list[trial1, trial2] = np.sqrt(wavenum[1]**2 + wavenum[2]**2)            
-                freq_list[trial1, trial2] = np.abs(imag_part_pred_select[max_real_index])/(2*np.pi)
-            else: 
-                max_real_list[trial1, trial2] = 0
-                max_imag_list[trial1, trial2] = 0
-                wavenum_list[trial1, trial2] = 0
-                freq_list[trial1, trial2] = 0
+    if not calc_phase_diagram and os.path.exists("./data/artfigs_NC_"+file_name+"_radius_list.npy"):
+        radius_list = np.load("./data/artfigs_NC_"+file_name+"_radius_list.npy")
+        max_real_list = np.load("./data/artfigs_NC_"+file_name+"_max_real_list.npy")
+        max_imag_list = np.load("./data/artfigs_NC_"+file_name+"_max_imag_list.npy")
+        phase_diagram = np.load("./data/artfigs_NC_"+file_name+"_phase_diagram.npy")
+        wavenum_list = np.load("./data/artfigs_NC_"+file_name+"_wavenum_list.npy")
+        freq_list = np.load("./data/artfigs_NC_"+file_name+"_freq_list.npy")
+    else:
+        radius_list = np.zeros((trial_num_theo, trial_num_theo))
+        max_real_list = np.zeros((trial_num_theo, trial_num_theo))
+        max_imag_list = np.zeros((trial_num_theo, trial_num_theo))
+        phase_diagram = np.full((trial_num_theo, trial_num_theo), np.nan)
+        wavenum_list = np.zeros((trial_num_theo, trial_num_theo))
+        freq_list = np.zeros((trial_num_theo, trial_num_theo))
+        for trial1 in trange(trial_num_theo):
+            for trial2 in range(trial_num_theo):
+                p_net = generate_phase_params(trial1, trial2, trial_num_theo)
+                p_net = calc_eff_p_net(p_net, p_simul)
+                radius = calc_pred_radius(p_net, dim=2)
+                radius_list[trial1, trial2] = radius
+                lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net, dim=2)
+                real_part_pred_select = np.real(lambda_list_pred_select)
+                imag_part_pred_select = np.imag(lambda_list_pred_select)
+                if len(lambda_list_pred_select) != 0:
+                    max_real_index = np.argmax(real_part_pred_select)
+                    max_real_list[trial1, trial2] = real_part_pred_select[max_real_index]
+                    max_imag_list[trial1, trial2] = imag_part_pred_select[max_real_index]
+                    wavenum = label_list_pred_select[max_real_index]
+                    wavenum_list[trial1, trial2] = np.sqrt(wavenum[1]**2 + wavenum[2]**2)            
+                    freq_list[trial1, trial2] = np.abs(imag_part_pred_select[max_real_index])/(2*np.pi)
+                else: 
+                    max_real_list[trial1, trial2] = 0
+                    max_imag_list[trial1, trial2] = 0
+                    wavenum_list[trial1, trial2] = 0
+                    freq_list[trial1, trial2] = 0
 
-            if radius <= 1 and max_real_list[trial1, trial2] <= 1:
-                phase_diagram[trial1, trial2] = 0
-            elif radius >= 1: #TEMP, when both >= is undertermined
-                phase_diagram[trial1, trial2] = 1
-            elif max_imag_list[trial1, trial2] <= 0:
-                if wavenum_list[trial1, trial2] <= 0:
-                    phase_diagram[trial1, trial2] = 2
-                if wavenum_list[trial1, trial2] > 0:
-                    phase_diagram[trial1, trial2] = 3
-            elif max_imag_list[trial1, trial2] > 0:
-                if wavenum_list[trial1, trial2] <= 0:
-                    phase_diagram[trial1, trial2] = 4
-                if wavenum_list[trial1, trial2] > 0:
-                    phase_diagram[trial1, trial2] = 5
-        
+                if radius <= 1 and max_real_list[trial1, trial2] <= 1:
+                    phase_diagram[trial1, trial2] = 0
+                elif radius >= 1: #TEMP, when both >= is undertermined
+                    phase_diagram[trial1, trial2] = 1
+                elif max_imag_list[trial1, trial2] <= 0:
+                    if wavenum_list[trial1, trial2] <= 0:
+                        phase_diagram[trial1, trial2] = 2
+                    if wavenum_list[trial1, trial2] > 0:
+                        phase_diagram[trial1, trial2] = 3
+                elif max_imag_list[trial1, trial2] > 0:
+                    if wavenum_list[trial1, trial2] <= 0:
+                        phase_diagram[trial1, trial2] = 4
+                    if wavenum_list[trial1, trial2] > 0:
+                        phase_diagram[trial1, trial2] = 5
+        np.save("./data/artfigs_NC_"+file_name+"_radius_list.npy", radius_list)
+        np.save("./data/artfigs_NC_"+file_name+"_max_real_list.npy", max_real_list)
+        np.save("./data/artfigs_NC_"+file_name+"_max_imag_list.npy", max_imag_list)
+        np.save("./data/artfigs_NC_"+file_name+"_phase_diagram.npy", phase_diagram)
+        np.save("./data/artfigs_NC_"+file_name+"_wavenum_list.npy", wavenum_list)
+        np.save("./data/artfigs_NC_"+file_name+"_freq_list.npy", freq_list)
+
     #plot phase
     plt.imshow(phase_diagram, origin='lower', cmap=cmap_phase)
     plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num_theo)
@@ -127,7 +141,6 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     plt.savefig("./figs/artfigs_NC_"+file_name+"_phase.png")
     plt.close()
 
-'''
     #magnitude of neural activity
     if not calc_phase_diagram and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_acti.npy"):
         mean_acti = np.load("./data/artfigs_NC_"+file_name+"_mean_acti.npy")
@@ -461,4 +474,4 @@ def artfigs_plot_eigs(eigs:np.ndarray, ax = None, eigs_axislim: Callable = eigs_
     ax.scatter(real_part, imag_part, s=3, c='none', marker='o', edgecolors='k')
     if axvline:
         ax.axvline(x=1,c='gray',ls='--')
-'''
+

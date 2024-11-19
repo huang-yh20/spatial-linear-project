@@ -20,6 +20,7 @@ class Simul_Params(NamedTuple):
     record_step: int
     activation_func: Union[str, List[str]] = "linear"
     external_input: str = "noise" 
+    tau_m:float = 1.0
 
 #以下是激活函数
 def activation_func_tanh(x):
@@ -34,9 +35,9 @@ def activation_func_rectified_linear_highthres(x):
     max_firing_rate = 5
     return np.minimum(max_firing_rate, np.maximum(-max_firing_rate, x))
 def activation_func_thres_linear(x):
-    return np.maximum(0, x)
+    return 10.0 * np.maximum(0, x)
 def activation_func_thres_powerlaw(x):
-    return (np.maximum(0, x))**2
+    return 2.0 * ((np.maximum(0, x))**2)
 def activation_func_shifted_sigmoid(x):
     max_rate, V_th, sigma = 10, 20, 5
     return max_rate/(1 + np.exp(-(x - V_th)/sigma))
@@ -73,7 +74,7 @@ def dyn_simul(p_net:Network_Params, p_simul:Simul_Params, dim=1, homo_fix_point=
         activated_x_E = activation_func_list[0](x[0:p_net.N_E])
         activated_x_I = activation_func_list[1](x[p_net.N_E:p_net.N_E+p_net.N_I])
         activated_x = np.concatenate((activated_x_E,activated_x_I))
-        x += J_spa @ activated_x/ p_simul.t_step + external_input_tuple[0] / p_simul.t_step + external_input_tuple[1] * np.sqrt(1/p_simul.t_step).astype(np.float32) 
+        x += (J_spa @ activated_x/ p_simul.t_step + external_input_tuple[0] / p_simul.t_step + external_input_tuple[1] * np.sqrt(1/p_simul.t_step).astype(np.float32))/p_simul.tau_m
         if step % p_simul.record_step == 0:
             record_x.append(x.copy())
     record_x = np.array(record_x,dtype=np.float32)
