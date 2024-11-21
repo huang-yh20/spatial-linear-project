@@ -145,15 +145,17 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
             scale_max = np.max(x_imag_smoothed)
         else:
             scale_max = np.max(record_x)
+            scale_min = np.min(record_x)
         for step in trange(np.shape(record_x)[0]):
             fig, ax = plt.subplots()
-            
-            norm = mcolors.TwoSlopeNorm(vmin=-scale_max, vcenter=0, vmax=scale_max)
+            #TEMP
+            norm = mcolors.TwoSlopeNorm(vmin=scale_min, vmax=scale_max)
+            #TEMP: cmap=plt.cm.RdBu
             if filter == False:
                 #img = ax.imshow(record_x[step][0:int(np.ceil(np.sqrt(p_net.N_E)))**2].reshape((int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))), cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
-                img = ax.imshow(record_x_img[step,:,:], cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
+                img = ax.imshow(record_x_img[step,:,:], norm=norm, origin='upper', aspect=1)
             else:
-                img = ax.imshow(x_imag_smoothed[step,:,:], cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
+                img = ax.imshow(x_imag_smoothed[step,:,:], norm=norm, origin='upper', aspect=1)
             ax.set_xlabel("Location", fontsize=15)
             ax.set_ylabel("Location", fontsize=15)
             # 设置 x 和 y 轴的刻度
