@@ -6,7 +6,6 @@ from spatial_ultis import *
 from dyn_ultis import *
 from artfigs_NC_params import *
 
-T, t_step, record_step = 100, 100, 10
 repeat_num = 1
 trial_num = 21
 

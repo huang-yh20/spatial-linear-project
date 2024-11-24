@@ -3,6 +3,7 @@ import numpy as np
 import scipy.sparse as spa
 import scipy.sparse.linalg as spalin
 from scipy.optimize import fsolve
+from scipy.integrate import quad
 from scipy.ndimage import gaussian_filter,gaussian_filter1d
 from tqdm import trange
 import matplotlib.colors as mcolors
@@ -70,7 +71,7 @@ def dyn_simul(p_net:Network_Params, p_simul:Simul_Params, dim=1, homo_fix_point=
     record_x = []
     for step in trange(p_simul.T*p_simul.t_step):
         external_input_tuple = external_input(step/p_simul.t_step, p_net)
-        x *= np.exp(-1/p_simul.t_step).astype(np.float32)
+        x *= np.exp(-1/(p_simul.t_step * p_simul.tau_m)).astype(np.float32)
         activated_x_E = activation_func_list[0](x[0:p_net.N_E])
         activated_x_I = activation_func_list[1](x[p_net.N_E:p_net.N_E+p_net.N_I])
         activated_x = np.concatenate((activated_x_E,activated_x_I))
@@ -268,7 +269,7 @@ def record_to_gif():
                 product_gif(record_x, p_net=None, p_simul = p_simul, file_name='dyn_gif_'+file_name+'_'+activation_func_str+str(trial), dim=2)
                 product_gif(record_x, p_net=None, p_simul = p_simul, file_name='dyn_gif_smoothed_'+file_name+'_'+activation_func_str+str(trial), dim=2, filter=True)
 
-#TODO externel input
+
 def find_dyn_fix_point(p_net: Network_Params, p_simul: Simul_Params):
     if type(p_simul.activation_func) == str:
         activation_func_list = [activation_func_dict[p_simul.activation_func], activation_func_dict[p_simul.activation_func]]
@@ -292,6 +293,68 @@ def find_dyn_fix_point(p_net: Network_Params, p_simul: Simul_Params):
                 fixed_points.append(point)
     return fixed_points
     
+#TODO 完整的理论推导，以下只是暂时的
+def find_dyn_fix_point_with_variance(p_net: Network_Params, p_simul: Simul_Params, dim=2):
+    if type(p_simul.activation_func) == str:
+        activation_func_list = [activation_func_dict[p_simul.activation_func], activation_func_dict[p_simul.activation_func]]
+    elif type(p_simul.activation_func) == list:
+        activation_func_list = [activation_func_dict[p_simul.activation_func[0]], activation_func_dict[p_simul.activation_func[1]]]
+    external_input = external_input_dict[p_simul.external_input]
+
+    eps_d = 1e-4
+    def d_phi_E(x):
+        return (activation_func_list[0](x+eps_d) - activation_func_list[0](x-eps_d))/(2*eps_d)
+    def d_phi_I(x):
+        return (activation_func_list[1](x+eps_d) - activation_func_list[1](x-eps_d))/(2*eps_d)   
+    
+    def gauss_int(mu, sigma, f:Callable):
+        def f_int(x):
+            return (1 / (np.sqrt(2 * np.pi) * np.abs(sigma))) * np.exp(-((x - mu) ** 2) / (2 * np.abs(sigma) ** 2)) * f(x)
+        if sigma == 0:
+            return f(mu)
+        else:
+            return quad(f_int, -np.inf, np.inf)
+        
+        
+    #x定义为前两个是E跟I的均值，而后两个则是方差
+    def df(x):
+        dx_dt = np.array([0.0,0.0,0.0,0.0])
+        dx_dt[0] = -x[0] + p_net.g_bar_EE * gauss_int(x[0], np.sqrt(x[2]), activation_func_list[0]) + p_net.g_bar_EI * p_net.N_I / p_net.N_E * gauss_int(x[1], np.sqrt(x[3]), activation_func_list[1]) + np.mean(external_input(0, p_net)[0][0:p_net.N_E])
+        dx_dt[1] = -x[1] + p_net.g_bar_IE * gauss_int(x[0], np.sqrt(x[2]), activation_func_list[0]) * p_net.N_E / p_net.N_I + p_net.g_bar_II * gauss_int(x[1], np.sqrt(x[3]), activation_func_list[1]) + np.mean(external_input(0, p_net)[0][p_net.N_E:p_net.N_E+p_net.N_I])
+        
+        J_EE, J_EI, J_IE, J_II = p_net.g_bar_EE/p_net.N_EE, p_net.g_bar_EI/p_net.N_EI, p_net.g_bar_IE/p_net.N_IE, p_net.g_bar_II/p_net.N_II
+        sigma_EE, sigma_EI, sigma_IE, sigma_II = p_net.g_EE/np.sqrt(p_net.N_EE), p_net.g_EI/np.sqrt(p_net.N_EI), p_net.g_IE/np.sqrt(p_net.N_IE), p_net.g_II/np.sqrt(p_net.N_II)  
+        if dim == 1:
+            sigma_eff_EE = p_net.N_EE * np.sqrt(p_net.N_E/p_net.N_E) * ((1 - p_net.N_EE/(2 * np.sqrt(np.pi)*p_net.d_EE*(p_net.N_E))) * J_EE **2 + sigma_EE**2)
+            sigma_eff_IE = p_net.N_IE * np.sqrt(p_net.N_E/p_net.N_I) * ((1 - p_net.N_IE/(2 * np.sqrt(np.pi)*p_net.d_IE*(p_net.N_I))) * J_IE **2 + sigma_IE**2)
+            sigma_eff_EI = p_net.N_EI * np.sqrt(p_net.N_I/p_net.N_E) * ((1 - p_net.N_EI/(2 * np.sqrt(np.pi)*p_net.d_EI*(p_net.N_E))) * J_EI **2 + sigma_EI**2)
+            sigma_eff_II = p_net.N_II * np.sqrt(p_net.N_I/p_net.N_I) * ((1 - p_net.N_II/(2 * np.sqrt(np.pi)*p_net.d_II*(p_net.N_I))) * J_II **2 + sigma_II**2)
+        elif dim == 2:
+            sigma_eff_EE = p_net.N_EE * np.sqrt(p_net.N_E/p_net.N_E) * ((1 - p_net.N_EE/(4 * np.pi * p_net.d_EE**2 * p_net.N_E)) * J_EE **2 + sigma_EE**2)
+            sigma_eff_IE = p_net.N_IE * np.sqrt(p_net.N_E/p_net.N_I) * ((1 - p_net.N_IE/(4 * np.pi * p_net.d_IE**2 * p_net.N_I)) * J_IE **2 + sigma_IE**2)
+            sigma_eff_EI = p_net.N_EI * np.sqrt(p_net.N_I/p_net.N_E) * ((1 - p_net.N_EI/(4 * np.pi * p_net.d_EI**2 * p_net.N_E)) * J_EI **2 + sigma_EI**2)
+            sigma_eff_II = p_net.N_II * np.sqrt(p_net.N_I/p_net.N_I) * ((1 - p_net.N_II/(4 * np.pi * p_net.d_II**2 * p_net.N_I)) * J_II **2 + sigma_II**2)
+        else:
+            print('dimenstion error')
+            return None       
+        
+        #TODO 这边存在两个问题，一是优化到了负数就会出错，二是噪声强度没得给出
+        dx_dt[2] = -x[2] + sigma_eff_EE * x[2] + sigma_eff_EI * x[3] + 0.01
+        dx_dt[3] = -x[3] + sigma_eff_IE * x[2] + sigma_eff_II * x[3] + 0.01
+        return dx_dt
+    
+    initial_guesses = [np.random.uniform(low=0, high=5, size=(4,)) for _ in range(50)]
+
+    fixed_points = []
+    for guess in initial_guesses:
+        point = fsolve(df, guess)
+        if np.sqrt((np.array(df(point)) ** 2).sum()) < 1e-3:
+            if not any(np.allclose(point, fp, atol=1e-3) for fp in fixed_points):
+                fixed_points.append(point)
+    return fixed_points
+
+
+
 
 def calc_eff_p_net(p_net: Network_Params, p_simul: Simul_Params):
     if type(p_simul.activation_func) == str:
