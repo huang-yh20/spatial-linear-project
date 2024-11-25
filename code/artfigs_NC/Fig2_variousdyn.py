@@ -18,9 +18,9 @@ from spatial_ultis import *
 from artfigs_NC_params import *
 from artfigs_NC_ultis import *
 
-file_name_list = ['thres_stable','thres_bump','thres_osc','thres_wave']
+file_name_list = ['thres_stable','thres_bump','thres_osc','thres_wave','thres_chaos']
 generate_params_func = generate_params_phase_d_II_g_bar_II_thres_L
-trial_params_list = [(10,10), (5,10), (10,5), (15,10)] #TODO
+trial_params_list = [(10,10), (2,8), (10,2), (20,5),(10,18)] #TODO
 repeat_num = 1
 
 p_simul_thres = Simul_Params(T = 2000, t_step=5, record_step=10, activation_func=['thres_linear','thres_powerlaw'], external_input="DC_noise",tau_m=20.0)
