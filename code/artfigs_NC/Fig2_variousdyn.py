@@ -20,7 +20,7 @@ from artfigs_NC_ultis import *
 
 file_name_list = ['thres_stable','thres_bump','thres_osc','thres_wave','thres_chaos']
 generate_params_func = generate_params_phase_d_II_g_bar_II_thres_L
-trial_params_list = [(10,10), (2,8), (10,2), (20,5),(10,18)] #TODO
+trial_params_list = [(10,10), (2,8), (10,2), (20,5),(15,20)] #TODO
 repeat_num = 1
 
 p_simul_thres = Simul_Params(T = 2000, t_step=5, record_step=10, activation_func=['thres_linear','thres_powerlaw'], external_input="DC_noise",tau_m=20.0)
@@ -57,21 +57,20 @@ for trial_plot in trange(len(file_name_list)):
     ax.tick_params(axis='y', labelsize=15)  
     ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
     plt.tight_layout()
-    plt.savefig(r"./figs/artfigs_NC_variousdyn_dynt_"+file_name+".png")
+    plt.savefig(r"./figs/artfigs_NC_d_II_g_bar_II_thres_L_dynt_"+file_name+".png")
     plt.close()
     
 
     #plot dynimag
     record_x = np.load(r"./data/artfigs_NC_"+'d_II_g_bar_II_thres_L'+'_'+str(trial_params[0])+'_'+str(trial_params[1])+'_'+ str(0)+r'.npy')
     record_x = activation_func_list[0](record_x)
-    #scale_max = np.max(record_x)
-    scale_max = 1
+    scale_max = np.max(record_x)
     record_x_img = (record_x[:,0:p_net.N_E]).reshape(np.shape(record_x)[0],int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))
     for trial_show in range(t_show_num):
         step_show = int((t_show_step * trial_show + t_show_onset) * p_simul_thres.t_step/p_simul_thres.record_step)
         fig, ax = plt.subplots()         
-        norm = mcolors.TwoSlopeNorm(vmin=-scale_max, vcenter=0, vmax=scale_max)
-        img = ax.imshow(record_x_img[step_show,:,:], cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
+        norm = mcolors.TwoSlopeNorm(vmin=0, vcenter=0.5*scale_max ,vmax=scale_max)
+        img = ax.imshow(record_x_img[step_show,:,:], norm=norm, origin='upper', aspect=1)
         ax.set_xlabel("Location", fontsize=15)
         ax.set_ylabel("Location", fontsize=15)
 
@@ -88,6 +87,9 @@ for trial_plot in trange(len(file_name_list)):
         cb.ax.set_title("Firing Rate")
         cb.update_ticks()
         plt.tight_layout()
-        plt.savefig(r"./figs/artfigs_NC_variousdyn_dynimag_thres_d_II_g_bar_II_thres_L_"+str(trial_plot)+"_"+str(trial_show)+".png")
+        plt.savefig(r"./figs/artfigs_NC_d_II_g_bar_II_thres_L_dynimag_"+file_name+"_"+str(trial_show)+".png")
         plt.close()
-    
+
+    record_x = np.load(r"./data/artfigs_NC_"+'d_II_g_bar_II_thres_L'+'_'+str(trial_params[0])+'_'+str(trial_params[1])+'_'+ str(0)+r'.npy')
+    record_x = activation_func_list[0](record_x)   
+    product_gif(record_x, p_net, p_simul_thres, file_name = r"./figs/artfigs_NC_d_II_g_bar_II_thres_L_dyngif_"+file_name+"_"+str(trial_show)+".gif", dim=2, filter = False)
