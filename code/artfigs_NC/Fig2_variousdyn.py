@@ -40,6 +40,9 @@ for trial_plot in trange(len(file_name_list)):
 
     #plot dyn of neurons
     record_x = np.load(r"./data/artfigs_NC_"+file_name_0+'_'+str(trial_params[0])+'_'+str(trial_params[1])+'_'+ str(0)+r'.npy')
+    activated_x_E = activation_func_list[0](record_x[:, 0:p_net.N_E])
+    activated_x_I = activation_func_list[0](record_x[:, p_net.N_E:p_net.N_E+p_net.N_I])
+    record_x = np.concatenate((activated_x_E,activated_x_I),axis=1)
     plot_exc_neurons_list = list(np.random.randint(0, p_net.N_E, size=exc_plot_num))
     plot_inh_neurons_list = list(np.random.randint(p_net.N_E, p_net.N_E + p_net.N_I, size=inh_plot_num))
 
@@ -65,7 +68,7 @@ for trial_plot in trange(len(file_name_list)):
     #plot dynimag
     record_x = np.load(r"./data/artfigs_NC_"+file_name_0+'_'+str(trial_params[0])+'_'+str(trial_params[1])+'_'+ str(0)+r'.npy')
     record_x = activation_func_list[0](record_x)
-    scale_max = np.max(record_x)
+    scale_max = np.minimum(np.max(record_x),300)
     record_x_img = (record_x[:,0:p_net.N_E]).reshape(np.shape(record_x)[0],int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))
     for trial_show in range(t_show_num):
         step_show = int((t_show_step * trial_show + t_show_onset) * p_simul_thres.t_step/p_simul_thres.record_step)
@@ -93,4 +96,4 @@ for trial_plot in trange(len(file_name_list)):
 
     record_x = np.load(r"./data/artfigs_NC_"+file_name_0+'_'+str(trial_params[0])+'_'+str(trial_params[1])+'_'+ str(0)+r'.npy')
     record_x = activation_func_list[0](record_x)   
-    product_gif(record_x, p_net, p_simul_thres, file_name = r"./figs/artfigs_NC_"+file_name_0+"_dyngif_"+file_name+"_"+str(trial_show)+".gif", dim=2, filter = False)
+    product_gif(record_x, p_net, p_simul_thres, file_name = r"artfigs_NC_"+file_name_0+"_dyngif_"+file_name+"_"+str(trial_show)+".gif", dim=2, filter = False)

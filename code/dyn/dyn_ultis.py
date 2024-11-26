@@ -92,7 +92,7 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
         activation_func_list = [activation_func_dict[p_simul.activation_func[0]], activation_func_dict[p_simul.activation_func[1]]]
 
     activated_x_E = activation_func_list[0](record_x[:,0:p_net.N_E])
-    activated_x_I = activation_func_list[0](record_x[:,p_net.N_E:p_net.N_E+p_net.N_I])
+    activated_x_I = activation_func_list[1](record_x[:,p_net.N_E:p_net.N_E+p_net.N_I])
     record_x = np.concatenate((activated_x_E,activated_x_I),axis=1)
 
     frames = []
@@ -145,7 +145,8 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
             x_imag_smoothed = np.array(x_imag_smoothed)
             scale_max = np.max(x_imag_smoothed)
         else:
-            scale_max = np.max(record_x)
+            #TEMP
+            scale_max = np.minimum(np.max(record_x),300)
             scale_min = np.min(record_x)
         for step in trange(np.shape(record_x)[0]):
             fig, ax = plt.subplots()

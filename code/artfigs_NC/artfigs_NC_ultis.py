@@ -156,9 +156,13 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
         np.save("./data/artfigs_NC_"+file_name+"_mean_acti.npy", mean_acti)
 
     plt.imshow(mean_acti, origin='lower', cmap='viridis', vmin=0, vmax=np.max(mean_acti))
+    # cb = plt.colorbar()
+    # cb.set_ticks([0, 0.5, 1])
+    # cb.set_ticklabels(['0', '0.5', '1'])
+    # cb.ax.tick_params(labelsize=15)
+    # cb.update_ticks()
     cb = plt.colorbar()
-    cb.set_ticks([0, 0.5, 1])
-    cb.set_ticklabels(['0', '0.5', '1'])
+    cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
     cb.update_ticks()
 
@@ -167,6 +171,39 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     plt.tight_layout()
     plt.savefig("./figs/artfigs_NC_"+file_name+"_acti.png")
     plt.close()
+
+    #CV
+    if not calc_phase_diagram and os.path.exists("./data/artfigs_NC_"+file_name+"_CV.npy"):
+        mean_CV = np.load("./data/artfigs_NC_"+file_name+"_CV.npy")
+    else:
+        mean_CV_all_repeat = np.zeros((repeat_num, trial_num, trial_num))
+        for repeat_trial in range(repeat_num):
+            for trial1 in trange(trial_num):
+                for trial2 in range(trial_num):
+                    record_x = np.load(r"./data/artfigs_NC_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
+                    activated_x = calc_activated_x(record_x)
+                    #mean_CV_all_repeat[repeat_trial, trial1, trial2] = np.mean(np.abs(activated_x[t_step_onset::,0:p_net.N_E]))
+                    mean_CV_all_repeat[repeat_trial, trial1, trial2] = np.mean(np.std(activated_x[t_step_onset::,0:p_net.N_E],axis=0)/np.mean(activated_x[t_step_onset::,0:p_net.N_E],axis=0))
+        mean_CV = np.mean(mean_CV_all_repeat, axis=0)
+        np.save("./data/artfigs_NC_"+file_name+"_mean_CV.npy", mean_CV)
+
+    plt.imshow(mean_CV, origin='lower', cmap='viridis', vmin=0, vmax=np.max(mean_CV))
+    # cb = plt.colorbar()
+    # cb.set_ticks([0, 0.5, 1])
+    # cb.set_ticklabels(['0', '0.5', '1'])
+    # cb.ax.tick_params(labelsize=15)
+    # cb.update_ticks()
+    cb = plt.colorbar()
+    cb.locator = MaxNLocator(nbins=5)
+    cb.ax.tick_params(labelsize=15)
+    cb.update_ticks()
+
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
+    plot_phase_boundary(radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[False,False,False,False])
+    plt.tight_layout()
+    plt.savefig("./figs/artfigs_NC_"+file_name+"_acti.png")
+    plt.close()
+
 
     #local sync
     mean_sync_all = np.zeros((repeat_num, trial_num, trial_num))
