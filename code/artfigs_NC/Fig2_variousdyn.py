@@ -95,5 +95,4 @@ for trial_plot in trange(len(file_name_list)):
         plt.close()
 
     record_x = np.load(r"./data/artfigs_NC_"+file_name_0+'_'+str(trial_params[0])+'_'+str(trial_params[1])+'_'+ str(0)+r'.npy')
-    record_x = activation_func_list[0](record_x)   
     product_gif(record_x, p_net, p_simul_thres, file_name = r"artfigs_NC_"+file_name_0+"_dyngif_"+file_name+"_"+str(trial_show)+".gif", dim=2, filter = False)
