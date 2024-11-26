@@ -76,7 +76,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     colors = ['white', 'gray', 'blue', 'yellow', 'green', 'pink']
     cmap_phase = ListedColormap(colors)
 
-    if not calc_phase_diagram and os.path.exists("./data/artfigs_NC_"+file_name+"_radius_list.npy"):
+    if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_radius_list.npy"):
         radius_list = np.load("./data/artfigs_NC_"+file_name+"_radius_list.npy")
         max_real_list = np.load("./data/artfigs_NC_"+file_name+"_max_real_list.npy")
         max_imag_list = np.load("./data/artfigs_NC_"+file_name+"_max_imag_list.npy")
@@ -142,7 +142,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     plt.close()
 
     #magnitude of neural activity
-    if not calc_phase_diagram and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_acti.npy"):
+    if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_acti.npy"):
         mean_acti = np.load("./data/artfigs_NC_"+file_name+"_mean_acti.npy")
     else:
         mean_acti_all_repeat = np.zeros((repeat_num, trial_num, trial_num))
@@ -173,7 +173,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     plt.close()
 
     #CV
-    if not calc_phase_diagram and os.path.exists("./data/artfigs_NC_"+file_name+"_CV.npy"):
+    if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_CV.npy"):
         mean_CV = np.load("./data/artfigs_NC_"+file_name+"_CV.npy")
     else:
         mean_CV_all_repeat = np.zeros((repeat_num, trial_num, trial_num))
@@ -201,7 +201,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
     plot_phase_boundary(radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[False,False,False,False])
     plt.tight_layout()
-    plt.savefig("./figs/artfigs_NC_"+file_name+"_acti.png")
+    plt.savefig("./figs/artfigs_NC_"+file_name+"_CV.png")
     plt.close()
 
 
@@ -209,7 +209,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     mean_sync_all = np.zeros((repeat_num, trial_num, trial_num))
     weight_matrix = np.ones((2*moran_radius+1, 2*moran_radius+1))
     weight_matrix = weight_matrix[np.newaxis, :, :]
-    if not calc_phase_diagram and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_local_sync.npy"):
+    if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_local_sync.npy"):
         mean_sync = np.load("./data/artfigs_NC_"+file_name+"_mean_local_sync.npy")
     else:
         for trial1 in trange(trial_num):
@@ -238,7 +238,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
 
     #global sync
     mean_sync = np.zeros((trial_num, trial_num))
-    if not calc_phase_diagram and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_global_sync.npy"):
+    if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_global_sync.npy"):
         mean_sync = np.load("./data/artfigs_NC_"+file_name+"_mean_global_sync.npy")
     else:
         for trial1 in trange(trial_num):
@@ -266,7 +266,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
 
     #simul freq
     mean_freq = np.zeros((trial_num, trial_num))
-    if not calc_phase_diagram and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_freq.npy"):
+    if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_freq.npy"):
         mean_freq = np.load("./data/artfigs_NC_"+file_name+"_mean_freq.npy")
     else:    
         for trial1 in trange(trial_num):
@@ -300,7 +300,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
 
     #simul wavenum
     mean_wavenum = np.zeros((trial_num, trial_num))
-    if not calc_phase_diagram and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_wavenum.npy"):
+    if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_wavenum.npy"):
         mean_wavenum = np.load("./data/artfigs_NC_"+file_name+"_mean_wavenum.npy")
     else:   
         for trial1 in trange(trial_num):
@@ -336,7 +336,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     mean_moran = np.zeros((trial_num, trial_num))
     weight_matrix = np.ones((2*moran_radius+1, 2*moran_radius+1))
     weight_matrix = weight_matrix[np.newaxis, :, :]
-    if not calc_phase_diagram and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_moran.npy"):
+    if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_moran.npy"):
         mean_wavenum = np.load("./data/artfigs_NC_"+file_name+"_mean_moran.npy")
     else:   
         for trial1 in trange(trial_num):
