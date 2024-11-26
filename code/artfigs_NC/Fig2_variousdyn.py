@@ -18,6 +18,7 @@ from spatial_ultis import *
 from artfigs_NC_params import *
 from artfigs_NC_ultis import *
 
+file_name_0 = 'd_II_g_bar_II_thres_L'
 file_name_list = ['thres_stable','thres_bump','thres_osc','thres_wave','thres_chaos']
 generate_params_func = generate_params_phase_d_II_g_bar_II_thres_L
 trial_params_list = [(10,10), (2,8), (10,2), (20,5),(15,20)] #TODO
@@ -38,7 +39,7 @@ for trial_plot in trange(len(file_name_list)):
 
 
     #plot dyn of neurons
-    record_x = np.load(r"./data/artfigs_NC_"+'d_II_g_bar_II_thres_L'+'_'+str(trial_params[0])+'_'+str(trial_params[1])+'_'+ str(0)+r'.npy')
+    record_x = np.load(r"./data/artfigs_NC_"+file_name_0+'_'+str(trial_params[0])+'_'+str(trial_params[1])+'_'+ str(0)+r'.npy')
     plot_exc_neurons_list = list(np.random.randint(0, p_net.N_E, size=exc_plot_num))
     plot_inh_neurons_list = list(np.random.randint(p_net.N_E, p_net.N_E + p_net.N_I, size=inh_plot_num))
 
@@ -57,12 +58,12 @@ for trial_plot in trange(len(file_name_list)):
     ax.tick_params(axis='y', labelsize=15)  
     ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
     plt.tight_layout()
-    plt.savefig(r"./figs/artfigs_NC_d_II_g_bar_II_thres_L_dynt_"+file_name+".png")
+    plt.savefig(r"./figs/artfigs_NC_"+file_name_0+"_dynt_"+file_name+".png")
     plt.close()
     
 
     #plot dynimag
-    record_x = np.load(r"./data/artfigs_NC_"+'d_II_g_bar_II_thres_L'+'_'+str(trial_params[0])+'_'+str(trial_params[1])+'_'+ str(0)+r'.npy')
+    record_x = np.load(r"./data/artfigs_NC_"+file_name_0+'_'+str(trial_params[0])+'_'+str(trial_params[1])+'_'+ str(0)+r'.npy')
     record_x = activation_func_list[0](record_x)
     scale_max = np.max(record_x)
     record_x_img = (record_x[:,0:p_net.N_E]).reshape(np.shape(record_x)[0],int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))
@@ -87,9 +88,9 @@ for trial_plot in trange(len(file_name_list)):
         cb.ax.set_title("Firing Rate")
         cb.update_ticks()
         plt.tight_layout()
-        plt.savefig(r"./figs/artfigs_NC_d_II_g_bar_II_thres_L_dynimag_"+file_name+"_"+str(trial_show)+".png")
+        plt.savefig(r"./figs/artfigs_NC_"+file_name_0+"_dynimag_"+file_name+"_"+str(trial_show)+".png")
         plt.close()
 
-    record_x = np.load(r"./data/artfigs_NC_"+'d_II_g_bar_II_thres_L'+'_'+str(trial_params[0])+'_'+str(trial_params[1])+'_'+ str(0)+r'.npy')
+    record_x = np.load(r"./data/artfigs_NC_"+file_name_0+'_'+str(trial_params[0])+'_'+str(trial_params[1])+'_'+ str(0)+r'.npy')
     record_x = activation_func_list[0](record_x)   
-    product_gif(record_x, p_net, p_simul_thres, file_name = r"./figs/artfigs_NC_d_II_g_bar_II_thres_L_dyngif_"+file_name+"_"+str(trial_show)+".gif", dim=2, filter = False)
+    product_gif(record_x, p_net, p_simul_thres, file_name = r"./figs/artfigs_NC_"+file_name_0+"_dyngif_"+file_name+"_"+str(trial_show)+".gif", dim=2, filter = False)
