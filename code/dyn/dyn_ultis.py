@@ -150,7 +150,7 @@ def product_gif(record_x: list, p_net:Network_Params = None, p_simul: Simul_Para
         for step in trange(np.shape(record_x)[0]):
             fig, ax = plt.subplots()
             #TEMP
-            norm = mcolors.TwoSlopeNorm(vmin=scale_min, vmax=scale_max)
+            norm = mcolors.TwoSlopeNorm(vmin=0, vcenter=0.5*scale_max, vmax=scale_max)
             #TEMP: cmap=plt.cm.RdBu
             if filter == False:
                 #img = ax.imshow(record_x[step][0:int(np.ceil(np.sqrt(p_net.N_E)))**2].reshape((int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))), cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
