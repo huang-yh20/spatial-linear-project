@@ -96,7 +96,12 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                 p_net_eff = calc_eff_p_net(p_net, p_simul)
                 radius = calc_pred_radius(p_net_eff, dim=2)
                 radius_list[trial1, trial2] = radius
-                lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net_eff, dim=2)
+                if radius <= 1:
+                    p_net_eff_4outlier = p_net_eff
+                else:
+                    p_net_eff_4outlier = calc_eff_p_net_with_variance(p_net)
+
+                lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net_eff_4outlier, dim=2, radius_filter=False)
                 real_part_pred_select = np.real(lambda_list_pred_select)
                 imag_part_pred_select = np.imag(lambda_list_pred_select)
                 if len(lambda_list_pred_select) != 0:
@@ -112,9 +117,10 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                     wavenum_list[trial1, trial2] = 0
                     freq_list[trial1, trial2] = 0
 
+                #TEMP 最好把各种分界都画出来，想一下怎么做
                 if radius <= 1 and max_real_list[trial1, trial2] <= 1:
                     phase_diagram[trial1, trial2] = 0
-                elif radius >= 1: #TEMP, when both >= is undertermined
+                elif radius >= 1 and max_real_list[trial1, trial2] <= 1:
                     phase_diagram[trial1, trial2] = 1
                 elif max_imag_list[trial1, trial2] <= 0:
                     if wavenum_list[trial1, trial2] <= 0:

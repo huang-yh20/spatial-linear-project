@@ -42,8 +42,8 @@ def generate_params_phase_d_II_g_bar_II(trial1:int, trial2:int, trial_num:int = 
 def generate_params_phase_d_II_g_bar_II_L(trial1:int, trial2:int, trial_num:int = 21):
     trial_num = trial_num
 
-    N_E, N_I = 22500*4, 5625*4
-    alpha = 0.8
+    N_E, N_I = 40000, 10000
+    alpha = 1.0
     g_bar_EE, g_bar_IE, g_bar_EI, g_bar_II = 5.5, 5, -5, -4.25
     d_EE, d_IE, d_EI, d_II = 0.05, 0.05, 0.05, 0.05
     conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
@@ -64,6 +64,7 @@ def generate_params_phase_d_II_g_bar_II_L(trial1:int, trial2:int, trial_num:int 
         )
     
     return p_net  
+
 #以上是给tanh用的，以下是给powerlaw激活函数用的
 
 def generate_params_phase_d_II_g_bar_II_thres_S(trial1:int, trial2:int, trial_num:int = 21):

@@ -241,7 +241,7 @@ def calc_pred_radius(p:Network_Params, dim = 1):
     return radius
 
 #理论预测离群点位置
-def calc_pred_outliers(p:Network_Params, dim = 1):
+def calc_pred_outliers(p:Network_Params, dim = 1, radius_filter = True):
     radius = calc_pred_radius(p,dim)
 
     lambda_list_pred = []
@@ -280,7 +280,7 @@ def calc_pred_outliers(p:Network_Params, dim = 1):
     lambda_list_pred_select = []
     label_list_pred_select = []
     for i in range(len(lambda_list_pred)):
-        if np.abs(lambda_list_pred[i]) > radius:
+        if (np.abs(lambda_list_pred[i]) > radius) or (not radius_filter):
             lambda_list_pred_select.append(lambda_list_pred[i])
             label_list_pred_select.append(label_list_pred[i])
     
