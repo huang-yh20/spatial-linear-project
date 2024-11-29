@@ -41,7 +41,7 @@ def plot_phase_diagram_axis_default(changed_params: str, changed_params_latex: s
 def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default):
     calc_phase_diagram = True
     t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1
-    trial_num_theo = 11 #TEMP
+    trial_num_theo = 61 #TEMP
     moran_radius = 5
     
     p_net = generate_phase_params(0, 0, trial_num)
@@ -132,12 +132,12 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                         phase_diagram[trial1, trial2] = 4
                     if wavenum_list[trial1, trial2] > 0:
                         phase_diagram[trial1, trial2] = 5
-        # np.save("./data/artfigs_NC_"+file_name+"_radius_list.npy", radius_list)
-        # np.save("./data/artfigs_NC_"+file_name+"_max_real_list.npy", max_real_list)
-        # np.save("./data/artfigs_NC_"+file_name+"_max_imag_list.npy", max_imag_list)
-        # np.save("./data/artfigs_NC_"+file_name+"_phase_diagram.npy", phase_diagram)
-        # np.save("./data/artfigs_NC_"+file_name+"_wavenum_list.npy", wavenum_list)
-        # np.save("./data/artfigs_NC_"+file_name+"_freq_list.npy", freq_list)
+        np.save("./data/artfigs_NC_"+file_name+"_radius_list.npy", radius_list)
+        np.save("./data/artfigs_NC_"+file_name+"_max_real_list.npy", max_real_list)
+        np.save("./data/artfigs_NC_"+file_name+"_max_imag_list.npy", max_imag_list)
+        np.save("./data/artfigs_NC_"+file_name+"_phase_diagram.npy", phase_diagram)
+        np.save("./data/artfigs_NC_"+file_name+"_wavenum_list.npy", wavenum_list)
+        np.save("./data/artfigs_NC_"+file_name+"_freq_list.npy", freq_list)
 
     #plot phase
     plt.imshow(phase_diagram, origin='lower', cmap=cmap_phase)
