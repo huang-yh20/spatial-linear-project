@@ -27,6 +27,9 @@ class Simul_Params(NamedTuple):
 def activation_func_tanh(x):
     max_firing_rate = 1
     return max_firing_rate*(np.tanh(x/max_firing_rate).astype(np.float32))
+def activation_func_tanh_high(x):
+    max_firing_rate = 5
+    return max_firing_rate*(np.tanh(x/max_firing_rate).astype(np.float32))
 def activation_func_linear(x):
     return x
 def activation_func_rectified_linear_lowthres(x):
@@ -43,7 +46,7 @@ def activation_func_shifted_sigmoid(x):
     max_rate, V_th, sigma = 10, 20, 5
     return max_rate/(1 + np.exp(-(x - V_th)/sigma))
 
-activation_func_dict = {"linear": activation_func_linear, "tanh":activation_func_tanh, "rectified_linear_lowthres":activation_func_rectified_linear_lowthres, "rectified_linear_highthres":activation_func_rectified_linear_highthres,
+activation_func_dict = {"linear": activation_func_linear, "tanh":activation_func_tanh, "tanh_high":activation_func_tanh_high, "rectified_linear_lowthres":activation_func_rectified_linear_lowthres, "rectified_linear_highthres":activation_func_rectified_linear_highthres,
                         "thres_linear": activation_func_thres_linear, "thres_powerlaw": activation_func_thres_powerlaw, "shifted_sigmoid":activation_func_shifted_sigmoid}
 
 #以下是外界输入，返回一个tuple，代表非噪声项和噪声项
@@ -285,7 +288,7 @@ def find_dyn_fix_point(p_net: Network_Params, p_simul: Simul_Params):
         dx_dt[1] = -x[1] + p_net.g_bar_IE * activation_func_list[0](x[0]) * p_net.N_E / p_net.N_I + p_net.g_bar_II * activation_func_list[1](x[1]) + np.mean(external_input(0, p_net)[0][p_net.N_E:p_net.N_E+p_net.N_I])
         return dx_dt
 
-    initial_guesses = [np.random.randn(2) * 2 for _ in range(50)] #TEMP
+    initial_guesses = [np.random.randn(2) * 2 for _ in range(10)] #TEMP
 
     fixed_points = []
     for guess in initial_guesses:
@@ -341,7 +344,8 @@ def find_dyn_fix_point_with_variance(p_net: Network_Params, p_simul: Simul_Param
         dx_dt[3] = -x[3] + sigma_eff_IE * gauss_int(x[0], x[2], lambda x:activation_func_list[0](x)**2) + sigma_eff_II * gauss_int(x[1], x[3], lambda x:activation_func_list[1](x)**2) + 0.01
         return dx_dt
     
-    initial_guesses = [np.random.uniform(low=0, high=5, size=(4,)) for _ in range(50)]
+    # initial_guesses = [np.random.uniform(low=0, high=5, size=(4,)) for _ in range(50)]
+    initial_guesses = [np.random.uniform(low=-1, high=1, size=(4,)) + np.array([0,0,1,1]) for _ in range(50)] #TEMP
 
     fixed_points = []
     for guess in initial_guesses:
