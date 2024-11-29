@@ -41,7 +41,7 @@ def plot_phase_diagram_axis_default(changed_params: str, changed_params_latex: s
 def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default):
     calc_phase_diagram = True
     t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1
-    trial_num_theo = 61 #TEMP
+    trial_num_theo = 11 #TEMP
     moran_radius = 5
     
     p_net = generate_phase_params(0, 0, trial_num)
@@ -93,7 +93,8 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
         for trial1 in trange(trial_num_theo):
             for trial2 in range(trial_num_theo):
                 p_net = generate_phase_params(trial1, trial2, trial_num_theo)
-                p_net_eff = calc_eff_p_net(p_net, p_simul)
+                # p_net_eff = calc_eff_p_net(p_net, p_simul)
+                p_net_eff = p_net #TEMP
                 radius = calc_pred_radius(p_net_eff, dim=2)
                 radius_list[trial1, trial2] = radius
                 if radius <= 1:
