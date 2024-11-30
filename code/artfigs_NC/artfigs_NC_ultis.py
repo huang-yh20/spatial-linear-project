@@ -40,7 +40,7 @@ def plot_phase_diagram_axis_default(changed_params: str, changed_params_latex: s
 #TODO 加上一段可以把混沌状态也囊括进来的代码
 def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default):
     calc_phase_diagram = True
-    t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1
+    t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1500
     trial_num_theo = 11 #TEMP
     moran_radius = 5
     
@@ -281,7 +281,8 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                 freq_list_temp = []
                 for repeat_trial in range(repeat_num):
                     record_x = np.load(r"./data/artfigs_NC_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
-                    activated_x = calc_activated_x(record_x)                   
+                    activated_x = calc_activated_x(record_x)     
+                    activated_x = activated_x - np.mean(activated_x, axis=1)          
                     sp_activated_x = np.abs(np.fft.fft(activated_x[t_step_onset::,:], axis=0))
                     freq_sp = np.fft.fftfreq(np.shape(activated_x[t_step_onset::,:])[0], 1/(p_simul.t_step/p_simul.record_step))
                     sp_mean = np.mean(sp_activated_x, axis=1)
@@ -291,6 +292,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                     mean_freq[trial1, trial2] = 0
                 else:
                     mean_freq[trial1, trial2] = np.mean(np.array(freq_list_temp))  * (len(freq_list_temp)/(len(freq_list_temp) - freq_list_temp.count(0)))
+        mean_freq *= 1000 #TEMP for ms
         np.save("./data/artfigs_NC_"+file_name+"_mean_freq.npy",mean_freq)
     plt.imshow(mean_freq, origin='lower', cmap='viridis', vmin=0)
     cb = plt.colorbar()
