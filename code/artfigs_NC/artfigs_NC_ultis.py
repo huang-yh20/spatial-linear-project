@@ -41,7 +41,7 @@ def plot_phase_diagram_axis_default(changed_params: str, changed_params_latex: s
 def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default):
     calc_phase_diagram = True
     t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1500
-    trial_num_theo = 11 #TEMP
+    trial_num_theo = 61 #TEMP
     moran_radius = 5
     
     p_net = generate_phase_params(0, 0, trial_num)
