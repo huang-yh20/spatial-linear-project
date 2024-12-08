@@ -68,7 +68,7 @@ def generate_params_phase_d_II_g_bar_II_L(trial1:int, trial2:int, trial_num:int 
 def generate_params_phase_d_II_g_bar_II_S(trial1:int, trial2:int, trial_num:int = 21):
     trial_num = trial_num
 
-    N_E, N_I = 40000, 10000
+    N_E, N_I = 10000, 2500
     alpha = 0.95
     g_bar_EE, g_bar_IE, g_bar_EI, g_bar_II = 5.5, 5, -5, -4.25
     d_EE, d_IE, d_EI, d_II = 0.1, 0.1, 0.1, 0.1
