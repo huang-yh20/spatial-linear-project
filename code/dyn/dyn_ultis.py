@@ -472,7 +472,94 @@ def calc_eff_p_net_with_variance(p_net: Network_Params, p_simul: Simul_Params):
     p_net_eff = Network_Params(N_E = p_net.N_E, N_I = p_net.N_I,
         N_EE = p_net.N_EE, N_IE = p_net.N_IE, N_EI = p_net.N_EI, N_II = p_net.N_II,
         d_EE = p_net.d_EE, d_IE = p_net.d_IE, d_EI = p_net.d_EI, d_II = p_net.d_II,
-        g_bar_EE = p_net.g_bar_EE * d_phi_E_mean, g_bar_EI = p_net.g_bar_EI * d_phi_I_mean, g_bar_IE = p_net.g_bar_IE * d_phi_E_mean, g_bar_II = p_net.g_bar_II * d_phi_I_mean,
+        g_bar_EE = p_net.g_bar_EE * d_phi_E_mean, g_bar_EI = p_net.g_bar_EI * d_phi_E_mean, g_bar_IE = p_net.g_bar_IE * d_phi_I_mean, g_bar_II = p_net.g_bar_II * d_phi_I_mean,
         g_EE = p_net.g_EE * d_phi_E_mean, g_EI = p_net.g_EI * d_phi_I_mean, g_IE = p_net.g_IE * d_phi_E_mean, g_II = p_net.g_II * d_phi_I_mean)
     
     return p_net_eff
+
+#这个是真正正确的关于混沌稳定性的结果
+
+def calc_eff_perturb_matrix(p_net:Network_Params, p_simul:Simul_Params, n:int, dim:int = 2):
+
+    fixed_points = find_dyn_fix_point_with_variance(p_net, p_simul)
+
+    #TODO: select the correct fix point
+    fixed_points = sorted(fixed_points, key=lambda x: x[0])
+    if len(fixed_points) == 1:
+        fixed_point = fixed_points[0]
+    elif len(fixed_points) == 2:
+        fixed_point = fixed_points[1]
+    elif len(fixed_points) == 3:
+        fixed_point = fixed_points[1]
+    else:
+        print("fixed points number error!", len(fixed_points))
+
+    if type(p_simul.activation_func) == str:
+        activation_func_list = [activation_func_dict[p_simul.activation_func], activation_func_dict[p_simul.activation_func]]
+    elif type(p_simul.activation_func) == list:
+        activation_func_list = [activation_func_dict[p_simul.activation_func[0]], activation_func_dict[p_simul.activation_func[1]]]
+    external_input = external_input_noise    
+    eps_d = 1e-5
+
+    def d_phi_E(x):
+        return (activation_func_list[0](x+eps_d) - activation_func_list[0](x-eps_d))/(2*eps_d)
+    def d_phi_I(x):
+        return (activation_func_list[1](x+eps_d) - activation_func_list[1](x-eps_d))/(2*eps_d)
+    def dd_phi_E(x):
+        return (d_phi_E(x+eps_d) - d_phi_E(x-eps_d))/(2*eps_d)
+    def dd_phi_I(x):
+        return (d_phi_I(x+eps_d) - d_phi_I(x-eps_d))/(2*eps_d)   
+
+    d_phi_E_mean = gauss_int(fixed_point[0], fixed_point[2], d_phi_E)
+    d_phi_I_mean = gauss_int(fixed_point[1], fixed_point[3], d_phi_I)
+    d_phi_mean = np.array([d_phi_E_mean, d_phi_I_mean])     
+
+    dd_phi_E_mean = gauss_int(fixed_point[0], fixed_point[2], dd_phi_E)
+    dd_phi_I_mean = gauss_int(fixed_point[1], fixed_point[3], dd_phi_I)
+    dd_phi_mean = np.array([dd_phi_E_mean, dd_phi_I_mean])    
+
+    d_phi_E_square_mean = gauss_int(fixed_point[0], fixed_point[2], lambda x: d_phi_E(x) ** 2)
+    d_phi_I_square_mean = gauss_int(fixed_point[1], fixed_point[3], lambda x: d_phi_I(x) ** 2)   
+    d_phi_square_mean = np.array([d_phi_E_square_mean, d_phi_I_square_mean])
+
+    phi_dphi_E_mean = gauss_int(fixed_point[0], fixed_point[2], lambda x: activation_func_list[0](x) * d_phi_E(x))
+    phi_dphi_I_mean = gauss_int(fixed_point[1], fixed_point[3], lambda x: activation_func_list[1](x) * d_phi_I(x))
+    phi_dphi_mean = np.array([phi_dphi_E_mean, phi_dphi_I_mean])   
+
+    phi_ddphi_E_mean = gauss_int(fixed_point[0], fixed_point[2], lambda x: activation_func_list[0](x) * dd_phi_E(x))
+    phi_ddphi_I_mean = gauss_int(fixed_point[1], fixed_point[3], lambda x: activation_func_list[1](x) * dd_phi_I(x))
+    phi_ddphi_mean = np.array([phi_ddphi_E_mean, phi_ddphi_I_mean])
+    
+    d = np.array([[p_net.d_EE, p_net.d_EI],
+                  [p_net.d_IE, p_net.d_II]])
+    g_bar = np.array([[p_net.g_bar_EE, p_net.g_bar_EI],
+                      [p_net.g_bar_IE, p_net.g_bar_II]])
+    g = np.array([[p_net.g_EE, p_net.g_EI],
+                  [p_net.g_IE, p_net.g_II]])
+    
+    if dim == 1:
+        spa_F = np.array([[p_net.N_EE/(np.sqrt(2*np.pi) * p_net.N_E * p_net.d_EE), p_net.N_EI/(np.sqrt(2*np.pi) * p_net.N_E * p_net.d_EI)],
+                          [p_net.N_IE/(np.sqrt(2*np.pi) * p_net.N_I * p_net.d_IE), p_net.N_II/(np.sqrt(2*np.pi) * p_net.N_I * p_net.d_II)]])
+    elif dim == 2:
+        spa_F = np.array([[p_net.N_EE/((4*np.pi) * p_net.N_E * p_net.d_EE**2), p_net.N_EI/((4*np.pi) * p_net.N_E * p_net.d_EI**2)],
+                          [p_net.N_IE/((4*np.pi) * p_net.N_I * p_net.d_IE**2), p_net.N_II/((4*np.pi) * p_net.N_I * p_net.d_II**2)]])   
+        
+    k = 2 * np.pi * n
+    
+    E_g_bar = 2 * ( (((g ** 2) * np.exp(-k**2 * d**2 / 2)).dot(np.diag(phi_dphi_mean))).dot(g_bar * np.exp(-k**2 * d**2 / 2)) \
+                   - (g ** 2) * np.exp(-k**2 * d**2 / 4) * spa_F).dot(np.diag(phi_dphi_mean)).dot(g_bar * np.exp(-k**2 * d**2 / 2) )
+    A_g_bar = np.diag(d_phi_mean).dot(g_bar) * np.exp(-d**2 * k **2 /2) + np.diag(dd_phi_mean).dot(0.5 *E_g_bar)
+    D = (g ** 2 * np.exp(- d**2 * k**2 / 2)).dot(np.diag(d_phi_square_mean + phi_ddphi_mean))
+    B = 0.5 * np.diag(dd_phi_mean).dot(D)
+
+    perturb_matrix = np.block([[A_g_bar, B],
+                               [E_g_bar, D]])
+    #TEMP
+    print( phi_ddphi_mean)
+    
+    return perturb_matrix
+    
+
+
+
+

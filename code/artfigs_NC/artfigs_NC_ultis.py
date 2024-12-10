@@ -39,7 +39,7 @@ def plot_phase_diagram_axis_default(changed_params: str, changed_params_latex: s
 
 #TODO 加上一段可以把混沌状态也囊括进来的代码
 def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default):
-    calc_phase_diagram = True
+    calc_phase_diagram = False
     t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1500
     trial_num_theo = 61 #TEMP
     moran_radius = 5
@@ -76,7 +76,8 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     colors = ['white', 'gray', 'blue', 'yellow', 'green', 'pink']
     cmap_phase = ListedColormap(colors)
 
-    if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_radius_list.npy"):
+    #TEMP
+    if False and (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_radius_list.npy"):
         radius_list = np.load("./data/artfigs_NC_"+file_name+"_radius_list.npy")
         max_real_list = np.load("./data/artfigs_NC_"+file_name+"_max_real_list.npy")
         max_imag_list = np.load("./data/artfigs_NC_"+file_name+"_max_imag_list.npy")
@@ -342,6 +343,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     plt.savefig("./figs/artfigs_NC_"+file_name+"_wavenum_exp.png")
     plt.close()
 
+    #moran
     mean_moran = np.zeros((trial_num, trial_num))
     weight_matrix = np.ones((2*moran_radius+1, 2*moran_radius+1))
     weight_matrix = weight_matrix[np.newaxis, :, :]
@@ -365,11 +367,16 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                 mean_moran[trial1, trial2] = np.mean(np.array(moran_list))
         np.save("./data/artfigs_NC_"+file_name+"_mean_moran.npy", mean_moran)
 
-    norm = mcolors.TwoSlopeNorm(vmin=-1, vcenter=0, vmax=1)
-    plt.imshow(mean_moran, origin='lower', norm=norm, cmap=plt.cm.RdBu)
+    # norm = mcolors.TwoSlopeNorm(vmin=-1, vcenter=0, vmax=1)
+    plt.imshow(mean_moran, origin='lower', vmin=0, cmap='viridis')
+    # cb = plt.colorbar()
+    # cb.set_ticks([-1, 0, 1])
+    # cb.set_ticklabels(['-1', '0', '1'])
+    # cb.ax.tick_params(labelsize=15)
+    # cb.update_ticks()
+
     cb = plt.colorbar()
-    cb.set_ticks([-1, 0, 1])
-    cb.set_ticklabels(['-1', '0', '1'])
+    cb.locator = MaxNLocator(nbins=5)
     cb.ax.tick_params(labelsize=15)
     cb.update_ticks()
 
