@@ -40,7 +40,7 @@ def plot_phase_diagram_axis_default(changed_params: str, changed_params_latex: s
 #TODO 加上一段可以把混沌状态也囊括进来的代码
 def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default):
     calc_phase_diagram = True
-    t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1500
+    t_step_onset = int(p_simul.t_step/p_simul.record_step * 1000)
     trial_num_theo = 61 #TEMP
     moran_radius = 5
     
@@ -94,8 +94,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
         for trial1 in trange(trial_num_theo):
             for trial2 in range(trial_num_theo):
                 p_net = generate_phase_params(trial1, trial2, trial_num_theo)
-                # p_net_eff = calc_eff_p_net(p_net, p_simul)
-                p_net_eff = p_net #TEMP
+                p_net_eff = calc_eff_p_net(p_net, p_simul)
                 radius = calc_pred_radius(p_net_eff, dim=2)
                 radius_list[trial1, trial2] = radius
                 if radius <= 1:
@@ -170,7 +169,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     # cb.ax.tick_params(labelsize=15)
     # cb.update_ticks()
     cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=5)
+    cb.locator = MaxNLocator(nbins=4)
     cb.ax.tick_params(labelsize=15)
     cb.update_ticks()
 
@@ -191,20 +190,15 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                     record_x = np.load(r"./data/artfigs_NC_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
                     activated_x = calc_activated_x(record_x)
                     #mean_CV_all_repeat[repeat_trial, trial1, trial2] = np.mean(np.abs(activated_x[t_step_onset::,0:p_net.N_E]))
-                    mean_CV_all_repeat[repeat_trial, trial1, trial2] = np.mean(np.std(activated_x[t_step_onset::,0:p_net.N_E],axis=0)/np.mean(activated_x[t_step_onset::,0:p_net.N_E],axis=0))
+                    mean_CV_all_repeat[repeat_trial, trial1, trial2] = np.mean(np.std(activated_x[t_step_onset::,0:p_net.N_E],axis=0)/(np.mean(activated_x[t_step_onset::,0:p_net.N_E],axis=0) + 1e-5))
         mean_CV = np.mean(mean_CV_all_repeat, axis=0)
         np.save("./data/artfigs_NC_"+file_name+"_mean_CV.npy", mean_CV)
 
     plt.imshow(mean_CV, origin='lower', cmap='viridis', vmin=0, vmax=np.max(mean_CV))
     cb = plt.colorbar()
-    cb.set_ticks([0, 0.5, 1])
-    cb.set_ticklabels(['0', '0.5', '1'])
+    cb.locator = MaxNLocator(nbins=4)
     cb.ax.tick_params(labelsize=15)
     cb.update_ticks()
-    # cb = plt.colorbar()
-    # cb.locator = MaxNLocator(nbins=5)
-    # cb.ax.tick_params(labelsize=15)
-    # cb.update_ticks()
 
     plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
     plot_phase_boundary(radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[False,False,False,False])
@@ -233,7 +227,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
         np.save("./data/artfigs_NC_"+file_name+"_mean_local_sync.npy", mean_sync)
     plt.imshow(mean_sync, origin='lower', cmap='viridis', vmin=0, vmax=np.max(mean_sync))
     cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=3)  
+    cb.locator = MaxNLocator(nbins=4)  
     cb.update_ticks()
     cb.ax.tick_params(labelsize=15)
     cb.update_ticks()
@@ -261,8 +255,8 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
 
     plt.imshow(mean_sync, origin='lower', cmap='viridis', vmin=0, vmax=np.max(mean_sync))
     cb = plt.colorbar()
-    cb.set_ticks([0, 0.5, 1])
-    cb.set_ticklabels(['0', '0.5', '1'])
+    cb.locator = MaxNLocator(nbins=4)  
+    cb.update_ticks()
     cb.ax.tick_params(labelsize=15)
     cb.update_ticks()
 
@@ -297,7 +291,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
         np.save("./data/artfigs_NC_"+file_name+"_mean_freq.npy",mean_freq)
     plt.imshow(mean_freq, origin='lower', cmap='viridis', vmin=0)
     cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=5)
+    cb.locator = MaxNLocator(nbins=4)
     cb.ax.tick_params(labelsize=15)
     cb.update_ticks()
 
@@ -333,7 +327,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
         np.save("./data/artfigs_NC_"+file_name+"_mean_wavenum.npy", mean_wavenum)
     plt.imshow(mean_wavenum, origin='lower', cmap='viridis', vmin=0)
     cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=5)
+    cb.locator = MaxNLocator(nbins=4)
     cb.ax.tick_params(labelsize=15)
     cb.update_ticks()
 
@@ -361,7 +355,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                     local_sum = convolve(centralized_activated_x_E_2d, weight_matrix, mode='wrap')
                     numerator = np.sum(centralized_activated_x_E_2d * local_sum, axis=(1,2))
                     denominator = np.sum(centralized_activated_x_E_2d ** 2, axis=(1,2))
-                    moran_index_time = (1 / np.sum(weight_matrix)) * (numerator / denominator)
+                    moran_index_time = (1 / np.sum(weight_matrix)) * (numerator / (denominator + 1e-5))
                     moran_index = np.mean(moran_index_time)
                     moran_list.append(moran_index)
                 mean_moran[trial1, trial2] = np.mean(np.array(moran_list))
@@ -369,14 +363,8 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
 
     # norm = mcolors.TwoSlopeNorm(vmin=-1, vcenter=0, vmax=1)
     plt.imshow(mean_moran, origin='lower', vmin=0, cmap='viridis')
-    # cb = plt.colorbar()
-    # cb.set_ticks([-1, 0, 1])
-    # cb.set_ticklabels(['-1', '0', '1'])
-    # cb.ax.tick_params(labelsize=15)
-    # cb.update_ticks()
-
     cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=5)
+    cb.locator = MaxNLocator(nbins=4)
     cb.ax.tick_params(labelsize=15)
     cb.update_ticks()
 

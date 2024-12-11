@@ -325,6 +325,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
     plt.savefig("./figs/phase_"+file_name+"_wavenum_exp.png")
     plt.close()
 
+    #moran
     mean_moran = np.zeros((trial_num, trial_num))
     weight_matrix = np.ones((2*moran_radius+1, 2*moran_radius+1))
     weight_matrix = weight_matrix[np.newaxis, :, :]
@@ -342,7 +343,7 @@ def plot_phase_diagram(file_name:str, changed_params:str, changed_params_latex:s
                     local_sum = convolve(centralized_activated_x_E_2d, weight_matrix, mode='wrap')
                     numerator = np.sum(centralized_activated_x_E_2d * local_sum, axis=(1,2))
                     denominator = np.sum(centralized_activated_x_E_2d ** 2, axis=(1,2))
-                    moran_index_time = (1 / np.sum(weight_matrix)) * (numerator / denominator)
+                    moran_index_time = (1 / np.sum(weight_matrix)) * (numerator / (denominator + 1e-5))
                     moran_index = np.mean(moran_index_time)
                     moran_list.append(moran_index)
                 mean_moran[trial1, trial2] = np.mean(np.array(moran_list))
@@ -381,7 +382,7 @@ def plot_phase_diagram1p(file_name:str, changed_params_value:tuple, changed_para
         activated_x = np.concatenate((activated_x_E,activated_x_I), axis=1)
         return activated_x
     
-    t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1
+    t_step_onset = int(p_simul.t_step/p_simul.record_step * 1)
     trial_num_theo = 101
     moran_radius = 5
 

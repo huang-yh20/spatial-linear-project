@@ -289,7 +289,15 @@ def find_dyn_fix_point(p_net: Network_Params, p_simul: Simul_Params):
         dx_dt[1] = -x[1] + p_net.g_bar_IE * activation_func_list[0](x[0]) * p_net.N_E / p_net.N_I + p_net.g_bar_II * activation_func_list[1](x[1]) + np.mean(external_input(0, p_net)[0][p_net.N_E:p_net.N_E+p_net.N_I])
         return dx_dt
 
-    initial_guesses = [np.random.randn(2) * 2 for _ in range(guess_num)] #TEMP
+    #TEMP
+    if type(p_simul.activation_func) == str:
+        activation_func_type_list = [p_simul.activation_func]
+    else:
+        activation_func_type_list = p_simul.activation_func
+    if all(activation_func in ['tanh','tanh_high','linear'] for activation_func in activation_func_type_list):
+        initial_guesses = [np.random.randn(2) * 2 for _ in range(guess_num)] 
+    else:
+        initial_guesses = [np.random.uniform(0,10,2) for _ in range(guess_num)]
 
     fixed_points = []
     for guess in initial_guesses:
