@@ -295,16 +295,17 @@ def find_dyn_fix_point(p_net: Network_Params, p_simul: Simul_Params):
     else:
         activation_func_type_list = p_simul.activation_func
     if all(activation_func in ['tanh','tanh_high','linear'] for activation_func in activation_func_type_list):
-        initial_guesses = [np.random.randn(2) * 2 for _ in range(guess_num)] 
+        return np.array([0,0])
     else:
         initial_guesses = [np.random.uniform(0,10,2) for _ in range(guess_num)]
 
     fixed_points = []
-    for guess in initial_guesses:
-        point = fsolve(df, guess)
-        if np.sqrt((np.array(df(point)) ** 2).sum()) < 1e-3:
-            if not any(np.allclose(point, fp, atol=1e-3) for fp in fixed_points):
-                fixed_points.append(point)
+    while len(fixed_points) == 0:
+        for guess in initial_guesses:
+            point = fsolve(df, guess)
+            if np.sqrt((np.array(df(point)) ** 2).sum()) < 1e-3:
+                if not any(np.allclose(point, fp, atol=1e-3) for fp in fixed_points):
+                    fixed_points.append(point)
     return fixed_points
 
 #TODO 完整的理论推导，以下只是暂时的

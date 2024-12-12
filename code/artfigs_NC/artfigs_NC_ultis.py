@@ -201,7 +201,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     cb.update_ticks()
 
     plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-    plot_phase_boundary(radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[False,False,False,False])
+    plot_phase_boundary(radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,False,True])
     plt.tight_layout()
     plt.savefig("./figs/artfigs_NC_"+file_name+"_CV.png")
     plt.close()
