@@ -403,7 +403,8 @@ def plot_phase_diagram1p(file_name:str, changed_params_value:tuple, changed_para
     max_real_list = []
     for trial in range(trial_num_theo):
         p_net = generate_phase_params1p(trial, trial_num_theo)
-        radius_list.append(calc_pred_radius(p_net,dim=2)) 
+        p_net_eff = calc_eff_p_net(p_net, p_simul)
+        radius_list.append(calc_pred_radius(p_net_eff,dim=2)) 
         lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net, dim=2)
         real_part_pred_select = np.real(lambda_list_pred_select)
         if len(lambda_list_pred_select) != 0:
@@ -452,7 +453,7 @@ def plot_phase_diagram1p(file_name:str, changed_params_value:tuple, changed_para
             local_sum = convolve(centralized_activated_x_E_2d, weight_matrix, mode='wrap')
             numerator = np.sum(centralized_activated_x_E_2d * local_sum, axis=(1,2))
             denominator = np.sum(centralized_activated_x_E_2d ** 2, axis=(1,2))
-            moran_index_time = (1 / np.sum(weight_matrix)) * (numerator / denominator)
+            moran_index_time = (1 / np.sum(weight_matrix)) * (numerator / (denominator+1e-5))
             moran_index_all[repeat_trial, trial] = np.mean(moran_index_time)
     
     mean_sync, std_sync = np.mean(mean_sync_all, axis=0), np.std(mean_sync_all, axis=0)

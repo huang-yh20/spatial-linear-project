@@ -1,0 +1,19 @@
+#!/bin/bash
+
+#SBATCH -e 1p.err
+#SBATCH -o 1p.out
+#SBATCH -J spatial-linear
+
+#SBATCH --partition=IGIpcluster
+#SBATCH --nodes=1
+#SBATCH --time=71:59:00
+#SBATCH --exclusive
+#SBATCH --output=1p.log
+
+
+
+###
+cd ../..
+trial=$TRIAL
+
+python ./code/artfigs_NC/Fig2_phase_prorec_1p.py $trial

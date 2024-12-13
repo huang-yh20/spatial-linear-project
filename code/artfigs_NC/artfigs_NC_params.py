@@ -158,7 +158,7 @@ def generate_params_phase_d_II_g_bar_II_thres_L(trial1:int, trial2:int, trial_nu
     g_EE, g_EI, g_IE, g_II = 0,0,0,0
 
     d_II_list = np.linspace(0.06, 0.16, trial_num) * 0.4
-    g_bar_II_list = np.linspace(-0.3, -0.46, trial_num)
+    g_bar_II_list = np.linspace(-0.3, -0.45, trial_num) #0.46 -> 0.45
 
     d_II = d_II_list[trial1]
     g_bar_II = g_bar_II_list[trial2]
@@ -171,3 +171,48 @@ def generate_params_phase_d_II_g_bar_II_thres_L(trial1:int, trial2:int, trial_nu
         g_EE = g_EE, g_EI = g_EI, g_IE = g_IE, g_II = g_II
         )
     return p_net
+
+def generate_params_phase_wave_thres_L_1p(trial:int, trial_num:int = 21):
+    trial_num = trial_num
+
+    N_E, N_I = 40000, 10000
+    alpha = 0.2
+    g_bar_EE, g_bar_IE, g_bar_EI, g_bar_II = 0.575, 0.125, -1.9, -0.3632
+    d_EE, d_IE, d_EI, d_II = 0.04, 0.04, 0.04, 0.16 * 0.4
+    conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
+    g_EE, g_EI, g_IE, g_II = 0,0,0,0
+
+    alpha_list = np.linspace(0.1,0.4,trial_num)
+    alpha = alpha_list[trial]
+    conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
+
+    p_net = Network_Params(N_E = N_E, N_I = N_I,
+        N_EE = conn_NEE, N_IE = conn_NIE, N_EI = conn_NEI, N_II = conn_NII,
+        d_EE = d_EE, d_IE = d_IE, d_EI = d_EI, d_II = d_II,
+        g_bar_EE = g_bar_EE, g_bar_EI = g_bar_EI, g_bar_IE = g_bar_IE, g_bar_II = g_bar_II,
+        g_EE = g_EE, g_EI = g_EI, g_IE = g_IE, g_II = g_II
+        )
+    return p_net
+
+def generate_params_phase_wave_thres_S_1p(trial:int, trial_num:int = 21):
+    trial_num = trial_num
+
+    N_E, N_I = 10000, 2500
+    alpha = 0.2
+    g_bar_EE, g_bar_IE, g_bar_EI, g_bar_II = 0.575, 0.125, -1.9, -0.3632
+    d_EE, d_IE, d_EI, d_II = 0.04 * 2, 0.04 * 2, 0.04 * 2, 0.16 * 0.4 * 2
+    conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
+    g_EE, g_EI, g_IE, g_II = 0,0,0,0
+
+    alpha_list = np.linspace(0.1,0.4,trial_num)
+    alpha = alpha_list[trial]
+    conn_NEE, conn_NIE, conn_NEI, conn_NII = tuple(alpha * np.array([2*np.pi * N_E * d_EE **2, 2*np.pi * N_I * d_IE **2, 2*np.pi * N_E * d_EI **2,2*np.pi * N_I * d_II **2]))
+
+    p_net = Network_Params(N_E = N_E, N_I = N_I,
+        N_EE = conn_NEE, N_IE = conn_NIE, N_EI = conn_NEI, N_II = conn_NII,
+        d_EE = d_EE, d_IE = d_IE, d_EI = d_EI, d_II = d_II,
+        g_bar_EE = g_bar_EE, g_bar_EI = g_bar_EI, g_bar_IE = g_bar_IE, g_bar_II = g_bar_II,
+        g_EE = g_EE, g_EI = g_EI, g_IE = g_IE, g_II = g_II
+        )
+    return p_net
+

@@ -71,7 +71,8 @@ def dyn_simul(p_net:Network_Params, p_simul:Simul_Params, dim=1, homo_fix_point=
     # J_spa = spa.csr_matrix(J)
     J_spa = generate_net_sparse(p_net, dim = dim, homo_fix_point=homo_fix_point)
     # x = np.zeros((p_net.N_E+p_net.N_I,))
-    x = np.random.randn(p_net.N_E+p_net.N_I) * 1 #TEMP
+    # x = np.random.randn(p_net.N_E+p_net.N_I) * 1 #TEMP
+    x = np.random.uniform(0, 10, p_net.N_E+p_net.N_I)
     
     record_x = []
     for step in trange(p_simul.T*p_simul.t_step):
@@ -294,13 +295,13 @@ def find_dyn_fix_point(p_net: Network_Params, p_simul: Simul_Params):
         activation_func_type_list = [p_simul.activation_func]
     else:
         activation_func_type_list = p_simul.activation_func
-    if all(activation_func in ['tanh','tanh_high','linear'] for activation_func in activation_func_type_list):
-        return np.array([0,0])
-    else:
-        initial_guesses = [np.random.uniform(0,10,2) for _ in range(guess_num)]
 
     fixed_points = []
     while len(fixed_points) == 0:
+        if all(activation_func in ['tanh','tanh_high','linear'] for activation_func in activation_func_type_list):
+            return np.array([0,0])
+        else:
+            initial_guesses = [np.random.uniform(0,10,2) for _ in range(guess_num)]
         for guess in initial_guesses:
             point = fsolve(df, guess)
             if np.sqrt((np.array(df(point)) ** 2).sum()) < 1e-3:
@@ -355,14 +356,15 @@ def find_dyn_fix_point_with_variance(p_net: Network_Params, p_simul: Simul_Param
         return dx_dt
     
     # initial_guesses = [np.random.uniform(low=0, high=5, size=(4,)) for _ in range(50)]
-    initial_guesses = [np.random.uniform(low=0, high=10, size=(4,)) for _ in range(guess_num)] #TEMP
 
     fixed_points = []
-    for guess in initial_guesses:
-        point = fsolve(df, guess)
-        if np.sqrt((np.array(df(point)) ** 2).sum()) < 1e-3:
-            if not any(np.allclose(point, fp, atol=1e-3) for fp in fixed_points):
-                fixed_points.append(point)
+    while len(fixed_points) == 0:
+        initial_guesses = [np.random.uniform(low=0, high=10, size=(4,)) for _ in range(guess_num)] #TEMP
+        for guess in initial_guesses:
+            point = fsolve(df, guess)
+            if np.sqrt((np.array(df(point)) ** 2).sum()) < 1e-3:
+                if not any(np.allclose(point, fp, atol=1e-3) for fp in fixed_points):
+                    fixed_points.append(point)
     return fixed_points
 
 #TEMP 固定均值为0
