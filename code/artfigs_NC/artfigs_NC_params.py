@@ -172,7 +172,7 @@ def generate_params_phase_d_II_g_bar_II_thres_L(trial1:int, trial2:int, trial_nu
         )
     return p_net
 
-def generate_params_phase_wave_thres_L_1p(trial:int, trial_num:int = 21):
+def generate_params_phase_wave_thres_L_1p(trial:int, trial_num:int = 41):
     trial_num = trial_num
 
     N_E, N_I = 40000, 10000

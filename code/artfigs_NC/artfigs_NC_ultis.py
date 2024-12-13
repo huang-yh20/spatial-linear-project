@@ -77,7 +77,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     cmap_phase = ListedColormap(colors)
 
     #TEMP
-    if False and (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_radius_list.npy"):
+    if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_radius_list.npy"):
         radius_list = np.load("./data/artfigs_NC_"+file_name+"_radius_list.npy")
         max_real_list = np.load("./data/artfigs_NC_"+file_name+"_max_real_list.npy")
         max_imag_list = np.load("./data/artfigs_NC_"+file_name+"_max_imag_list.npy")
@@ -378,9 +378,8 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     
 
 #plot phase diagram 1p, TODO
-def plot_phase_diagram1p(file_name:str, changed_params_value:tuple, changed_params_latex:str, generate_phase_params1p:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1):
+def plot_phase_diagram1p_new(file_name:str, changed_params_value:tuple, changed_params_latex:str, generate_phase_params1p:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1):
     p_net = generate_phase_params1p(0, trial_num)
-    activation_func_dict = {"linear": activation_func_linear, "tanh":activation_func_tanh, "rectified_linear_lowthres":activation_func_rectified_linear_lowthres, "rectified_linear_highthres":activation_func_rectified_linear_highthres}
     if type(p_simul.activation_func) == str:
         activation_func_list = [activation_func_dict[p_simul.activation_func], activation_func_dict[p_simul.activation_func]]
     elif type(p_simul.activation_func) == list:
@@ -393,7 +392,7 @@ def plot_phase_diagram1p(file_name:str, changed_params_value:tuple, changed_para
         activated_x = np.concatenate((activated_x_E,activated_x_I), axis=1)
         return activated_x
     
-    t_step_onset = int(p_simul.t_step/p_simul.record_step) * 1
+    t_step_onset = int(p_simul.t_step/p_simul.record_step * 1000)
     trial_num_theo = 101
     moran_radius = 5
 
@@ -405,7 +404,7 @@ def plot_phase_diagram1p(file_name:str, changed_params_value:tuple, changed_para
         p_net = generate_phase_params1p(trial, trial_num_theo)
         p_net_eff = calc_eff_p_net(p_net, p_simul)
         radius_list.append(calc_pred_radius(p_net_eff,dim=2)) 
-        lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net, dim=2)
+        lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net_eff, dim=2)
         real_part_pred_select = np.real(lambda_list_pred_select)
         if len(lambda_list_pred_select) != 0:
             max_real_list.append(real_part_pred_select[np.argmax(real_part_pred_select)])
@@ -438,11 +437,11 @@ def plot_phase_diagram1p(file_name:str, changed_params_value:tuple, changed_para
             record_x = np.load(r"./data/artfigs_NC_"+file_name+'_'+str(trial)+'_'+str(repeat_trial)+r'.npy')
             activated_x = calc_activated_x(record_x)[t_step_onset::,0:p_net.N_E]
 
-            #local sync
-            activated_x_E_2d = activated_x.reshape((np.shape(activated_x)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
-            local_sum = convolve(activated_x_E_2d, weight_matrix, mode='wrap')
-            local_abs_sum = convolve(np.abs(activated_x_E_2d), weight_matrix, mode='wrap')
-            mean_sync_all[repeat_trial, trial] = np.mean(np.abs(local_sum/(local_abs_sum +1e-9)))
+            # #local sync
+            # activated_x_E_2d = activated_x.reshape((np.shape(activated_x)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
+            # local_sum = convolve(activated_x_E_2d, weight_matrix, mode='wrap')
+            # local_abs_sum = convolve(np.abs(activated_x_E_2d), weight_matrix, mode='wrap')
+            # mean_sync_all[repeat_trial, trial] = np.mean(np.abs(local_sum/(local_abs_sum +1e-9)))
 
             #mean acti
             mean_acti_all[repeat_trial, trial] = np.mean(np.abs(activated_x))
@@ -456,12 +455,12 @@ def plot_phase_diagram1p(file_name:str, changed_params_value:tuple, changed_para
             moran_index_time = (1 / np.sum(weight_matrix)) * (numerator / (denominator+1e-5))
             moran_index_all[repeat_trial, trial] = np.mean(moran_index_time)
     
-    mean_sync, std_sync = np.mean(mean_sync_all, axis=0), np.std(mean_sync_all, axis=0)
+    # mean_sync, std_sync = np.mean(mean_sync_all, axis=0), np.std(mean_sync_all, axis=0)
     mean_acti, std_acti = np.mean(mean_acti_all, axis=0), np.std(mean_acti_all, axis=0)
     mean_moran, std_moran = np.mean(moran_index_all, axis=0), np.std(moran_index_all, axis=0)
 
     changed_params_value_list = np.linspace(changed_params_value[0], changed_params_value[1], trial_num)
-    plt.errorbar(changed_params_value_list, mean_sync, std_sync, label = 'Local Sync.')
+    # plt.errorbar(changed_params_value_list, mean_sync, std_sync, label = 'Local Sync.')
     plt.errorbar(changed_params_value_list, mean_moran, std_moran, label = 'Moran Index')
     plt.errorbar(changed_params_value_list, mean_acti, std_acti, label = 'Magnitude of Neural Activity')
 
@@ -473,7 +472,7 @@ def plot_phase_diagram1p(file_name:str, changed_params_value:tuple, changed_para
     plt.xlabel(changed_params_latex, fontsize=15)
     plt.legend()
     
-    plt.savefig("./figs/phase_1p_"+file_name+".png")
+    plt.savefig("./figs/artfigs_NC_phase_1p_"+file_name+".png")
 
 #plot eigs
 activation_func = activation_func_tanh
