@@ -437,11 +437,11 @@ def plot_phase_diagram1p_new(file_name:str, changed_params_value:tuple, changed_
             record_x = np.load(r"./data/artfigs_NC_"+file_name+'_'+str(trial)+'_'+str(repeat_trial)+r'.npy')
             activated_x = calc_activated_x(record_x)[t_step_onset::,0:p_net.N_E]
 
-            # #local sync
-            # activated_x_E_2d = activated_x.reshape((np.shape(activated_x)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
-            # local_sum = convolve(activated_x_E_2d, weight_matrix, mode='wrap')
-            # local_abs_sum = convolve(np.abs(activated_x_E_2d), weight_matrix, mode='wrap')
-            # mean_sync_all[repeat_trial, trial] = np.mean(np.abs(local_sum/(local_abs_sum +1e-9)))
+            #local sync
+            activated_x_E_2d = activated_x.reshape((np.shape(activated_x)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
+            local_sum = convolve(activated_x_E_2d, weight_matrix, mode='wrap')
+            local_abs_sum = convolve(np.abs(activated_x_E_2d), weight_matrix, mode='wrap')
+            mean_sync_all[repeat_trial, trial] = np.mean(np.abs(local_sum/(local_abs_sum +1e-9)))
 
             #mean acti
             mean_acti_all[repeat_trial, trial] = np.mean(np.abs(activated_x))
@@ -455,12 +455,12 @@ def plot_phase_diagram1p_new(file_name:str, changed_params_value:tuple, changed_
             moran_index_time = (1 / np.sum(weight_matrix)) * (numerator / (denominator+1e-5))
             moran_index_all[repeat_trial, trial] = np.mean(moran_index_time)
     
-    # mean_sync, std_sync = np.mean(mean_sync_all, axis=0), np.std(mean_sync_all, axis=0)
+    mean_sync, std_sync = np.mean(mean_sync_all, axis=0), np.std(mean_sync_all, axis=0)
     mean_acti, std_acti = np.mean(mean_acti_all, axis=0), np.std(mean_acti_all, axis=0)
     mean_moran, std_moran = np.mean(moran_index_all, axis=0), np.std(moran_index_all, axis=0)
 
     changed_params_value_list = np.linspace(changed_params_value[0], changed_params_value[1], trial_num)
-    # plt.errorbar(changed_params_value_list, mean_sync, std_sync, label = 'Local Sync.')
+    plt.errorbar(changed_params_value_list, mean_sync, std_sync, label = 'Local Sync.')
     plt.errorbar(changed_params_value_list, mean_moran, std_moran, label = 'Moran Index')
     plt.errorbar(changed_params_value_list, mean_acti, std_acti, label = 'Magnitude of Neural Activity')
 
@@ -512,7 +512,7 @@ def artfigs_plot_eigs(eigs:np.ndarray, ax = None, eigs_axislim: Callable = eigs_
 
     real_part = np.real(eigs)
     imag_part = np.imag(eigs)
-    ax.scatter(real_part, imag_part, s=3, c='none', marker='o', edgecolors='k')
+    ax.scatter(real_part, imag_part, s=0.5, c='none', marker='o', edgecolors='k')
     if axvline:
         ax.axvline(x=1,c='gray',ls='--')
 

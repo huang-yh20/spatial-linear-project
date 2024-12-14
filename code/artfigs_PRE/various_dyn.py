@@ -69,7 +69,7 @@ for trial_plot in trange(len(file_name_list)):
             local_sum = convolve(centralized_activated_x_E_2d, weight_matrix, mode='wrap')
             numerator = np.sum(centralized_activated_x_E_2d * local_sum, axis=(1,2))
             denominator = np.sum(centralized_activated_x_E_2d ** 2, axis=(1,2))
-            moran_index_time = (1 / np.sum(weight_matrix)) * (numerator / denominator)
+            moran_index_time = (1 / np.sum(weight_matrix)) * (numerator / (denominator + 1e-5))
             moran_index = np.mean(moran_index_time)
             moran_all.append(moran_index)
 
