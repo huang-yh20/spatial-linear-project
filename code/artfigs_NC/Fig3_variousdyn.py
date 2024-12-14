@@ -21,8 +21,10 @@ from artfigs_NC_ultis import *
 from artfigs_NC_params import *
 
 file_name_list = ['tanh_global','tanh_osc','tanh_bump','tanh_wave','tanh_chaos','tanh_stable']
-p_net_list = [generate_params_phase_d_II_g_bar_II_L(10,17),generate_params_phase_d_II_g_bar_II_L(5,5),generate_params_phase_d_II_g_bar_II_L(3,12),
+p_net_eigs_list = [generate_params_phase_d_II_g_bar_II_L(10,17),generate_params_phase_d_II_g_bar_II_L(5,5),generate_params_phase_d_II_g_bar_II_L(3,12),
               generate_params_phase_d_II_g_bar_II_L(17,7), generate_params_phase_g_d_II_L_chaos(15,9),generate_params_phase_d_II_g_bar_II_L(10,10)]
+p_net_order_list = [generate_params_phase_d_II_g_bar_II_S(10,17),generate_params_phase_d_II_g_bar_II_S(5,5),generate_params_phase_d_II_g_bar_II_S(3,12),
+              generate_params_phase_d_II_g_bar_II_S(17,7), generate_params_phase_g_d_II_L_chaos(15,9),generate_params_phase_d_II_g_bar_II_S(10,10)]
 order_file_name_list = ["d_II_g_bar_II_S_10_17","d_II_g_bar_II_S_5_5","d_II_g_bar_II_S_3_12","d_II_g_bar_II_S_17_7",'g_d_II_L_chaos_15_9',"d_II_g_bar_II_S_10_10"]
 show_file_name_list = ["d_II_g_bar_II_L_10_17","d_II_g_bar_II_L_5_5","d_II_g_bar_II_L_3_12","d_II_g_bar_II_L_17_7",'g_d_II_L_chaos_15_9',"d_II_g_bar_II_L_10_10"]
 repeat_num = 1
@@ -37,7 +39,7 @@ exc_plot_num, inh_plot_num = 4, 1
 
 for trial_plot in trange(len(file_name_list)):
     file_name = file_name_list[trial_plot]
-    p_net = p_net_list[trial_plot]
+    p_net = p_net_order_list[trial_plot]
 
     #calc orderprams
     orderparams_name = ['Std.', 'Local Sync.', "Moran's Index", 'Osc. Index']
@@ -104,17 +106,18 @@ for trial_plot in trange(len(file_name_list)):
 
 
     #calc eigs
-    calc_eigs_bool = False
-    if os.path.exists(r"./data/artfigs_NC_variousdyn_eigs_"+str(trial_plot)+"eigs.npy") and (not calc_eigs_bool):
-        eigs = np.load(r"./data/artfigs_NC_variousdyn_eigs_"+str(trial_plot)+"eigs.npy")
-        eig_V = np.load(r"./data/artfigs_NC_variousdyn_eigs_"+str(trial_plot)+"eigV.npy")
+    calc_eigs_bool = True
+
+    p_net = p_net_eigs_list[trial_plot]
+    if os.path.exists(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"eigs.npy") and (not calc_eigs_bool):
+        eigs = np.load(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"eigs.npy")
+        eig_V = np.load(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"eigV.npy")
     else:
-        dist_list = calc_dist(p_net, dim = 2)
-        J = generate_net_sparse(p_net, dist_list)
-        J = np.array(J)
+        J = generate_net_sparse(p_net, dim=2)
+        J = J.toarray()
         eigs, eig_V = np.linalg.eig(J)
-        np.save(r"./data/artfigs_variousdyn_NC_eigs_"+str(trial_plot)+"eigs.npy", eigs)
-        np.save(r"./data/artfigs_variousdyn_NC_eigs_"+str(trial_plot)+"eigV.npy", eig_V)
+        np.save(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"eigs.npy", eigs)
+        np.save(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"eigV.npy", eig_V)
     
     real_part = np.real(eigs)
     imag_part = np.imag(eigs)
@@ -144,11 +147,11 @@ for trial_plot in trange(len(file_name_list)):
     # ax_inset.tick_params(ax_insetis='x', labelsize=15)
     # ax_inset.tick_params(ax_insetis='y', labelsize=15)
     plt.tight_layout()
-    plt.savefig(r"./figs/artfigs_NC_variousdyn_eigs_"+str(trial_plot)+".png")
+    plt.savefig(r"./figs/artfigs_NC_variousdyn_eigs_"+file_name+".png")
     plt.close()
 
     #plot dyn of neurons
-    record_x = np.load(r"./data/artfigs_NC_dynrec_"+show_file_name_list[trial_plot]+'_'+str(1)+r'.npy')
+    record_x = np.load(r"./data/artfigs_NC_"+show_file_name_list[trial_plot]+'_'+str(0)+r'.npy')
     plot_exc_neurons_list = list(np.random.randint(0, p_net.N_E, size=exc_plot_num))
     plot_inh_neurons_list = list(np.random.randint(p_net.N_E, p_net.N_E + p_net.N_I, size=inh_plot_num))
 
@@ -172,7 +175,7 @@ for trial_plot in trange(len(file_name_list)):
     
 
     #plot dynimag
-    record_x = np.load(r"./data/artfigs_NC_dynrec_"+show_file_name_list[trial_plot]+'_'+str(0)+r'.npy')
+    record_x = np.load(r"./data/artfigs_NC_"+show_file_name_list[trial_plot]+'_'+str(0)+r'.npy')
     record_x = activation_func(record_x)
     #scale_max = np.max(record_x)
     scale_max = 1
