@@ -27,7 +27,7 @@ p_net_order_list = [generate_params_phase_d_II_g_bar_II_S(10,17),generate_params
               generate_params_phase_d_II_g_bar_II_S(17,7), generate_params_phase_g_d_II_L_chaos(15,9),generate_params_phase_d_II_g_bar_II_S(10,10)]
 order_file_name_list = ["d_II_g_bar_II_S_10_17","d_II_g_bar_II_S_5_5","d_II_g_bar_II_S_3_12","d_II_g_bar_II_S_17_7",'g_d_II_L_chaos_15_9',"d_II_g_bar_II_S_10_10"]
 show_file_name_list = ["d_II_g_bar_II_L_10_17","d_II_g_bar_II_L_5_5","d_II_g_bar_II_L_3_12","d_II_g_bar_II_L_17_7",'g_d_II_L_chaos_15_9',"d_II_g_bar_II_L_10_10"]
-repeat_num = 1
+repeat_num = 5
 
 p_simul = Simul_Params(T = 2000, t_step=5, record_step=10, activation_func=['tanh','tanh_high'], external_input="noise",tau_m=20.0)
 t_show_onset, t_show_step, t_show_num, t_step_onset = 1400, 80, 6, 500
@@ -104,9 +104,8 @@ for trial_plot in trange(len(file_name_list)):
     plt.savefig("./figs/artfigs_NC_variousdyn_orderparams_"+file_name+".png")
     plt.close()
 
-
     #calc eigs
-    calc_eigs_bool = True
+    calc_eigs_bool = False
 
     p_net = p_net_eigs_list[trial_plot]
     if os.path.exists(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"eigs.npy") and (not calc_eigs_bool):
