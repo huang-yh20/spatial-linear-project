@@ -42,7 +42,7 @@ for trial_plot in trange(len(file_name_list)):
     p_net = p_net_order_list[trial_plot]
 
     #calc orderprams
-    orderparams_name = ['Std.', 'Local Sync.', "Moran's Index", 'Osc. Index']
+    orderparams_name = ['Mean Acti.', 'Local Sync.', "Moran's Index", 'Osc. Index']
 
     mean_acti_all, mean_localsync_all, moran_all, freq_index_all = [], [], [], []
     weight_matrix = np.ones((2*moran_radius+1, 2*moran_radius+1))
@@ -51,7 +51,7 @@ for trial_plot in trange(len(file_name_list)):
         record_x = np.load(r"./data/artfigs_NC_"+order_file_name_list[trial_plot]+'_'+str(repeat_trial)+r'.npy')
         activated_x = np.tanh(record_x) #TEMP
         #mean acti
-        mean_acti_all.append(np.mean(np.std(activated_x[t_step_onset::,0:p_net.N_E])))
+        mean_acti_all.append(np.mean(np.abs(activated_x[t_step_onset::,0:p_net.N_E])))
         
         #local sync.
         activated_x_cut = activated_x[t_step_onset::,0:p_net.N_E]
@@ -96,10 +96,11 @@ for trial_plot in trange(len(file_name_list)):
 
     plt.bar(orderparams_name, orderprams_mean_array, yerr=orderprams_std_array, capsize=15, width=0.5, facecolor='none', edgecolor='black', error_kw={'ecolor': 'black'})
     ax = plt.gca()
-    ax.set_ylabel("Value", fontsize=15)
+    ax.set_ylabel("Value", fontsize=30)
     ax.set_yticks([0, 0.5, 1])
     ax.set_ylim((0, 1))
-    ax.tick_params(axis='y', labelsize=15)
+    ax.tick_params(axis='x', labelsize=30)
+    ax.tick_params(axis='y', labelsize=30)
 
     plt.savefig("./figs/artfigs_NC_variousdyn_orderparams_"+file_name+".png")
     plt.close()
@@ -110,7 +111,7 @@ for trial_plot in trange(len(file_name_list)):
     p_net = p_net_eigs_list[trial_plot]
     if os.path.exists(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"eigs.npy") and (not calc_eigs_bool):
         eigs = np.load(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"eigs.npy")
-        eig_V = np.load(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"eigV.npy")
+        # eig_V = np.load(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"eigV.npy")
     else:
         J = generate_net_sparse(p_net, dim=2)
         J = J.toarray()
@@ -123,19 +124,35 @@ for trial_plot in trange(len(file_name_list)):
 
     #plot eigs
     fig, ax = plt.subplots()
-    artfigs_plot_eigs(eigs)
+    radius = calc_pred_radius(p_net,dim=2)
+    temp_plot_pred(p_net, dim=2)
+    artfigs_plot_eigs(eigs,radius_transparent=radius)
 
     #plot eigV of largest eigs
     largest_eigs_index = np.argmax(real_part)
     plt.scatter([real_part[largest_eigs_index]],[imag_part[largest_eigs_index]],s=30,c='r',marker='^')
         
-    ax_inset = inset_axes(ax, width="30%", height="30%", loc='upper left')
-    scale_max = np.abs(np.max((eig_V.real)[0:p_net.N_E, largest_eigs_index]))
+    ax_inset = inset_axes(ax, width="40%", height="40%", loc='upper left')
+
+    if (not calc_eigs_bool) and (os.path.exists(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"plotvec.npy")):
+        plot_vec = np.load(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"plotvec.npy")
+    else:
+        if os.path.exists(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"eigs.npy") and (not calc_eigs_bool):
+            eig_V = np.load(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"eigV.npy")
+        plot_vec = eig_V[0:p_net.N_E, largest_eigs_index]
+        np.save(r"./data/artfigs_NC_variousdyn_eigs_"+file_name+"plotvec.npy", plot_vec)
+        
+    scale_max = np.abs(np.max(plot_vec.real))
+    #TEMP for chaos phase, better to modify scale_max for a good illustration
+    if trial_plot == 4:
+        scale_max *=  0.5
+
     norm = mcolors.TwoSlopeNorm(vmin=-scale_max, vcenter=0, vmax=scale_max)
-    eigV_imag = eig_V[0:p_net.N_E, largest_eigs_index].reshape((int(np.ceil(np.sqrt(p_net.N_E))),int(np.ceil(np.sqrt(p_net.N_E)))))
+    eigV_imag = plot_vec.reshape((int(np.ceil(np.sqrt(p_net.N_E))),int(np.ceil(np.sqrt(p_net.N_E)))))
     img = ax_inset.imshow(eigV_imag.real, cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
-    # ax_inset.set_xlabel("Location", fontsize=15)
-    # ax_inset.set_ylabel("Location", fontsize=15)
+    
+    # ax_inset.set_xlabel("Location", fontsize=30)
+    # ax_inset.set_ylabel("Location", fontsize=30)
 
     ticks = [0, int(np.ceil(np.sqrt(p_net.N_E)))]
     ax_inset.set_xticks(ticks)
@@ -143,31 +160,42 @@ for trial_plot in trange(len(file_name_list)):
     
     ax_inset.set_xticklabels([0, 1])
     ax_inset.set_yticklabels([0, 1])
-    # ax_inset.tick_params(ax_insetis='x', labelsize=15)
-    # ax_inset.tick_params(ax_insetis='y', labelsize=15)
+
+    cax = ax_inset.inset_axes([1.05, 0, 0.05, 1])
+    cbar = plt.colorbar(img, cax=cax, orientation='vertical')
+    cbar.set_ticks([-scale_max, 0, scale_max])
+    cbar.set_ticklabels([f'-{scale_max:.3f}', '0', f'{scale_max:.3f}'])
+
+
     plt.tight_layout()
     plt.savefig(r"./figs/artfigs_NC_variousdyn_eigs_"+file_name+".png")
     plt.close()
 
     #plot dyn of neurons
+    #TEMP: this is for the chaos phase so that it have better visualization
+    if trial_plot == 4:
+        t_dynt_onset, t_dynt_end = 1000, 2000
+    else:
+        t_dynt_onset, t_dynt_end = 1700, 2000
+
     p_net = p_net_eigs_list[trial_plot]
     record_x = np.load(r"./data/artfigs_NC_"+show_file_name_list[trial_plot]+'_'+str(0)+r'.npy')
     plot_exc_neurons_list = list(np.random.randint(0, p_net.N_E, size=exc_plot_num))
     plot_inh_neurons_list = list(np.random.randint(p_net.N_E, p_net.N_E + p_net.N_I, size=inh_plot_num))
 
-    plt.plot(np.linspace(t_dynt_onset, t_dynt_end, int((t_dynt_end-t_dynt_onset)*p_simul.t_step/p_simul.record_step)), record_x[int(t_dynt_onset*p_simul.t_step/p_simul.record_step):int(t_dynt_end*p_simul.t_step/p_simul.record_step), plot_exc_neurons_list[0]], color='red', label='Exc.')
+    plt.plot(np.linspace(0, t_dynt_end-t_dynt_onset, int((t_dynt_end-t_dynt_onset)*p_simul.t_step/p_simul.record_step)), record_x[int(t_dynt_onset*p_simul.t_step/p_simul.record_step):int(t_dynt_end*p_simul.t_step/p_simul.record_step), plot_exc_neurons_list[0]], color='red', label='Exc.')
     for neuron_index in plot_exc_neurons_list[1::]:
-        plt.plot(np.linspace(t_dynt_onset, t_dynt_end, int((t_dynt_end-t_dynt_onset)*p_simul.t_step/p_simul.record_step)), record_x[int(t_dynt_onset*p_simul.t_step/p_simul.record_step):int(t_dynt_end*p_simul.t_step/p_simul.record_step), neuron_index], color='red')
-    plt.plot(np.linspace(t_dynt_onset, t_dynt_end, int((t_dynt_end-t_dynt_onset)*p_simul.t_step/p_simul.record_step)), record_x[int(t_dynt_onset*p_simul.t_step/p_simul.record_step):int(t_dynt_end*p_simul.t_step/p_simul.record_step), plot_inh_neurons_list[0]], color='blue', label='Inh.')
+        plt.plot(np.linspace(0, t_dynt_end-t_dynt_onset, int((t_dynt_end-t_dynt_onset)*p_simul.t_step/p_simul.record_step)), record_x[int(t_dynt_onset*p_simul.t_step/p_simul.record_step):int(t_dynt_end*p_simul.t_step/p_simul.record_step), neuron_index], color='red')
+    plt.plot(np.linspace(0, t_dynt_end-t_dynt_onset, int((t_dynt_end-t_dynt_onset)*p_simul.t_step/p_simul.record_step)), record_x[int(t_dynt_onset*p_simul.t_step/p_simul.record_step):int(t_dynt_end*p_simul.t_step/p_simul.record_step), plot_inh_neurons_list[0]], color='blue', label='Inh.')
     for neuron_index in plot_inh_neurons_list[1::]:
-        plt.plot(np.linspace(t_dynt_onset, t_dynt_end, int((t_dynt_end-t_dynt_onset)*p_simul.t_step/p_simul.record_step)), record_x[int(t_dynt_onset*p_simul.t_step/p_simul.record_step):int(t_dynt_end*p_simul.t_step/p_simul.record_step), neuron_index], color='blue')  
-    plt.legend()
+        plt.plot(np.linspace(0, t_dynt_end-t_dynt_onset, int((t_dynt_end-t_dynt_onset)*p_simul.t_step/p_simul.record_step)), record_x[int(t_dynt_onset*p_simul.t_step/p_simul.record_step):int(t_dynt_end*p_simul.t_step/p_simul.record_step), neuron_index], color='blue')  
+    plt.legend(loc = 'upper right',fontsize=30)
     ax = plt.gca()
-    ax.set_xlabel("Time", fontsize=15)
-    ax.tick_params(axis='x', labelsize=15)  
+    ax.set_xlabel("Time(ms)", fontsize=30)
+    ax.tick_params(axis='x', labelsize=30)  
     ax.xaxis.set_major_locator(MaxNLocator(nbins=4)) 
-    ax.set_ylabel("Activity", fontsize=15)
-    ax.tick_params(axis='y', labelsize=15)  
+    ax.set_ylabel("Membrane Potential", fontsize=30)
+    ax.tick_params(axis='y', labelsize=30)  
     ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
     plt.tight_layout()
     plt.savefig(r"./figs/artfigs_NC_variousdyn_dynt_"+file_name+".png")
@@ -186,8 +214,8 @@ for trial_plot in trange(len(file_name_list)):
         fig, ax = plt.subplots()         
         norm = mcolors.TwoSlopeNorm(vmin=-scale_max, vcenter=0, vmax=scale_max)
         img = ax.imshow(record_x_img[step_show,:,:], cmap=plt.cm.RdBu, norm=norm, origin='upper', aspect=1)
-        ax.set_xlabel("Location", fontsize=15)
-        ax.set_ylabel("Location", fontsize=15)
+        ax.set_xlabel("Location", fontsize=30)
+        ax.set_ylabel("Location", fontsize=30)
 
         ticks = [0, int(np.ceil(np.sqrt(p_net.N_E)))]
         ax.set_xticks(ticks)
@@ -195,14 +223,17 @@ for trial_plot in trange(len(file_name_list)):
 
         ax.set_xticklabels([0, 1])
         ax.set_yticklabels([0, 1])
-        ax.tick_params(axis='x', labelsize=15)
-        ax.tick_params(axis='y', labelsize=15)
+        ax.tick_params(axis='x', labelsize=30)
+        ax.tick_params(axis='y', labelsize=30)
         cb = fig.colorbar(img, ax=ax, extend='both')
         cb.locator = MaxNLocator(nbins=5)
         cb.ax.set_title("Firing Rate")
+        cb.ax.set_title("Firing Rate", fontsize=20) 
+        for label in cb.ax.yaxis.get_ticklabels():
+            label.set_size(20)  
         cb.update_ticks()
         plt.tight_layout()
-        plt.savefig(r"./figs/artfigs_NC_variousdyn_dynimag_"+file_name+"_"+str(trial_show)+".png")
+        plt.savefig(r"./figs/artfigs_NC_variousdyn_dynimag_"+file_name+"_"+str(trial_show)+".svg")
         plt.close()
             
         

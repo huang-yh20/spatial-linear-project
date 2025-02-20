@@ -360,7 +360,7 @@ def temp_plot_pred(p_net:Network_Params, dim=1):
 
     plt.plot(x_dots, y_dots, c='lightcoral', linewidth=1)
     plt.plot(x_dots, -y_dots, c='lightcoral', linewidth=1)
-    plt.scatter(real_part_pred_select, imag_part_pred_select, s=30, c='lightcoral', marker='x')
+    plt.scatter(real_part_pred_select, imag_part_pred_select, s=10, c='lightcoral', marker='x')
     plt.axis("equal")
 
 #这是一个临时版本，只能处理恰好是整数的状态

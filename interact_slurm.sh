@@ -1,1 +1,1 @@
-salloc --partition=IGIcrunchers --exclusive
+salloc --partition=IMLcrunchers --exclusive

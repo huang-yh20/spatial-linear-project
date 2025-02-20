@@ -4,7 +4,7 @@
 #SBATCH -o test.out
 #SBATCH -J spatial-linear
 
-#SBATCH --partition=IGIpcluster
+#SBATCH --partition=IMLpcluster
 #SBATCH --nodes=1
 #SBATCH --time=71:59:00
 #SBATCH --exclusive

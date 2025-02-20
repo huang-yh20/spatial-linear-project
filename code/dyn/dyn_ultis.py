@@ -299,7 +299,7 @@ def find_dyn_fix_point(p_net: Network_Params, p_simul: Simul_Params):
     fixed_points = []
     while len(fixed_points) == 0:
         if all(activation_func in ['tanh','tanh_high','linear'] for activation_func in activation_func_type_list):
-            return np.array([0,0])
+            return [np.array([0,0])]
         else:
             initial_guesses = [np.random.uniform(0,10,2) for _ in range(guess_num)]
         for guess in initial_guesses:
