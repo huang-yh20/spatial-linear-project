@@ -18,9 +18,13 @@ from spatial_ultis import *
 from artfigs_NC_params import *
 from artfigs_NC_ultis import *
 
-file_name_list = ['tanh_global','tanh_osc','tanh_bump','tanh_wave','tanh_chaos','tanh_stable']
-p_net_eigs_list = [generate_params_phase_d_II_g_bar_II_L(10,17),generate_params_phase_d_II_g_bar_II_L(5,5),generate_params_phase_d_II_g_bar_II_L(3,12),
-              generate_params_phase_d_II_g_bar_II_L(17,7), generate_params_phase_g_d_II_L_chaos(15,9),generate_params_phase_d_II_g_bar_II_L(10,10)]
+# file_name_list = ['tanh_global','tanh_osc','tanh_bump','tanh_wave','tanh_chaos','tanh_stable']
+# p_net_eigs_list = [generate_params_phase_d_II_g_bar_II_L(10,17),generate_params_phase_d_II_g_bar_II_L(5,5),generate_params_phase_d_II_g_bar_II_L(3,12),
+#               generate_params_phase_d_II_g_bar_II_L(17,7), generate_params_phase_g_d_II_L_chaos(15,9),generate_params_phase_d_II_g_bar_II_L(10,10)]
+
+p_net_eigs_list  = [generate_params_phase_wospa_g_bar_IE_g_bar_EE_L(10, 5), generate_params_phase_wospa_g_bar_IE_g_bar_EE_L(5, 15), generate_params_phase_wospa_g_bar_IE_g_bar_EE_L(18, 15),\
+              generate_params_phase_wspa_g_bar_IE_g_bar_EE_L(5, 15), generate_params_phase_wspa_g_bar_IE_g_bar_EE_L(18, 15), generate_params_phase_g_d_II_L_chaos(15,9)]
+file_name_list = ['tanh_new_stable','tanh_new_global','tanh_new_osc','tanh_new_bump','tanh_new_wave','tanh_new_chaos']
 
 if __name__ == "__main__":
     args = sys.argv[1:]

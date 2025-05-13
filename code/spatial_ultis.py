@@ -23,7 +23,7 @@ def generate_params_default(trial:int):
     J_EE, J_IE, J_EI, J_II = 5/rescale, 9/rescale, -9/rescale, -14/rescale
     sigma_EE, sigma_IE, sigma_EI, sigma_II = 5/rescale, 9/rescale, 9/rescale, 14/rescale
     d_EE, d_IE, d_EI, d_II = 0.1, 0.1, 0.1, 0.16
-    
+
     rescale_list = list(rescale * np.array([1/0.5, 1/0.75, 1, 1/1.25, 1/1.5]))
     rescale = rescale_list[trial]
     J_EE, J_IE, J_EI, J_II = 5/rescale, 9/rescale, -9/rescale, -14/rescale
@@ -56,23 +56,23 @@ def calc_dist(p:Network_Params, dim = 1):
         loc_E_y = (np.ones((int(np.ceil(np.sqrt(p.N_E))),1)).dot(np.linspace(0, 1, int(np.ceil(np.sqrt(p.N_E)))).reshape((1,-1)))).T.reshape(-1)
         loc_I_x = (np.ones((int(np.ceil(np.sqrt(p.N_I))),1)).dot(np.linspace(0, 1, int(np.ceil(np.sqrt(p.N_I)))).reshape((1,-1)))).reshape(-1)
         loc_I_y = (np.ones((int(np.ceil(np.sqrt(p.N_I))),1)).dot(np.linspace(0, 1, int(np.ceil(np.sqrt(p.N_I)))).reshape((1,-1)))).T.reshape(-1)
-        loc_x = np.hstack((loc_E_x[0:p.N_E], loc_I_x[0:p.N_I])) 
-        loc_y = np.hstack((loc_E_y[0:p.N_E], loc_I_y[0:p.N_I])) 
+        loc_x = np.hstack((loc_E_x[0:p.N_E], loc_I_x[0:p.N_I]))
+        loc_y = np.hstack((loc_E_y[0:p.N_E], loc_I_y[0:p.N_I]))
         dist_x = loc_x.reshape((p.N_E + p.N_I, 1)) - loc_x.reshape((1, p.N_E + p.N_I))
         dist_y = loc_y.reshape((p.N_E + p.N_I, 1)) - loc_y.reshape((1, p.N_E + p.N_I))
         return (dist_x,dist_y)
-    else: 
+    else:
         print('dimension error!')
 
 #产生神经元之间的连接矩阵
 def generate_net(p:Network_Params, dist_list):
     #读取神经元之间的距离
     d_list = np.block([[np.ones((p.N_E, p.N_E)) * p.d_EE, np.ones((p.N_E, p.N_I)) * p.d_EI],
-                [np.ones((p.N_I, p.N_E)) * p.d_IE, np.ones((p.N_I, p.N_I)) * p.d_II]]) 
+                [np.ones((p.N_I, p.N_E)) * p.d_IE, np.ones((p.N_I, p.N_I)) * p.d_II]])
     dist_coef = np.ones((p.N_E+p.N_I,p.N_E+p.N_I))
     for dist in dist_list:
         dist_coef *= wrapped_Guassian(dist, d_list)
-    
+
     conn_prob = np.block([[np.ones(shape=(p.N_E, p.N_E))*p.N_EE/p.N_E, np.ones(shape=(p.N_E, p.N_I))*p.N_EI/p.N_E],
             [np.ones(shape=(p.N_I, p.N_E))*p.N_IE/p.N_I, np.ones(shape=(p.N_I, p.N_I))*p.N_II/p.N_I]])*dist_coef
     conn_syna = np.random.binomial(1, conn_prob, size=(p.N_E+p.N_I, p.N_E+p.N_I))
@@ -83,14 +83,14 @@ def generate_net(p:Network_Params, dist_list):
             [np.ones(shape=(p.N_I, p.N_E))*J_IE, np.ones(shape=(p.N_I, p.N_I))*J_II]])
     J_var = np.block([[np.random.randn(p.N_E, p.N_E)*sigma_EE, np.random.randn(p.N_E, p.N_I)*sigma_EI],
             [np.random.randn(p.N_I, p.N_E)*sigma_IE, np.random.randn(p.N_I, p.N_I)*sigma_II]])
-    J = (J_mean + J_var) * conn_syna 
+    J = (J_mean + J_var) * conn_syna
     return J
 
 #产生神经场论的连接矩阵
 def generate_field(p:Network_Params, dist_list):
     #读取神经元之间的距离
     d_list = np.block([[np.ones((p.N_E, p.N_E)) * p.d_EE, np.ones((p.N_E, p.N_I)) * p.d_EI],
-                [np.ones((p.N_I, p.N_E)) * p.d_IE, np.ones((p.N_I, p.N_I)) * p.d_II]]) 
+                [np.ones((p.N_I, p.N_E)) * p.d_IE, np.ones((p.N_I, p.N_I)) * p.d_II]])
     dist_coef = np.ones((p.N_E+p.N_I,p.N_E+p.N_I))
     for dist in dist_list:
         dist_coef *= wrapped_Guassian(dist, d_list)
@@ -116,14 +116,14 @@ def generate_net_sparse(p:Network_Params, dim=2, homo_fix_point = False):
             loc_E_y = (np.ones((int(np.ceil(np.sqrt(p.N_E))),1)).dot(np.linspace(0, 1, int(np.ceil(np.sqrt(p.N_E)))).reshape((1,-1)))).T.reshape(-1)
             loc_I_x = (np.ones((int(np.ceil(np.sqrt(p.N_I))),1)).dot(np.linspace(0, 1, int(np.ceil(np.sqrt(p.N_I)))).reshape((1,-1)))).reshape(-1)
             loc_I_y = (np.ones((int(np.ceil(np.sqrt(p.N_I))),1)).dot(np.linspace(0, 1, int(np.ceil(np.sqrt(p.N_I)))).reshape((1,-1)))).T.reshape(-1)
-            loc_x = np.hstack((loc_E_x[0:p.N_E], loc_I_x[0:p.N_I])) 
-            loc_y = np.hstack((loc_E_y[0:p.N_E], loc_I_y[0:p.N_I])) 
+            loc_x = np.hstack((loc_E_x[0:p.N_E], loc_I_x[0:p.N_I]))
+            loc_y = np.hstack((loc_E_y[0:p.N_E], loc_I_y[0:p.N_I]))
             dist_x = np.abs(loc_x[neuron_index] - loc_x)
             dist_y = np.abs(loc_y[neuron_index] - loc_y)
             return (dist_x,dist_y)
-        else: 
+        else:
             print('dimension error!')
-        
+
     J_EE, J_EI, J_IE, J_II = p.g_bar_EE/p.N_EE, p.g_bar_EI/p.N_EI, p.g_bar_IE/p.N_IE, p.g_bar_II/p.N_II
     sigma_EE, sigma_EI, sigma_IE, sigma_II = p.g_EE/np.sqrt(p.N_EE), p.g_EI/np.sqrt(p.N_EI), p.g_IE/np.sqrt(p.N_IE), p.g_II/np.sqrt(p.N_II)
 
@@ -144,7 +144,7 @@ def generate_net_sparse(p:Network_Params, dim=2, homo_fix_point = False):
             J_coo_col_list += [neuron_index] * np.sum(conn_syna)
             J_coo_data_list += list(np.ones(shape=(np.sum(conn_syna[0:p.N_E]),))*J_EE + np.random.randn(np.sum(conn_syna[0:p.N_E]))*sigma_EE)
             J_coo_data_list += list(np.ones(shape=(np.sum(conn_syna[p.N_E:p.N_E+p.N_I]),))*J_IE + np.random.randn(np.sum(conn_syna[p.N_E:p.N_E+p.N_I]))*sigma_IE)
-        
+
         d_list = np.block([np.ones(p.N_E) * p.d_EI, np.ones(p.N_I) * p.d_II])
         for neuron_index in range(p.N_E, p.N_E + p.N_I):
             dist_one_neuron = calc_dist_one_neuron(neuron_index, p, dim=dim)
@@ -158,7 +158,7 @@ def generate_net_sparse(p:Network_Params, dim=2, homo_fix_point = False):
             J_coo_col_list += [neuron_index] * np.sum(conn_syna)
             J_coo_data_list += list(np.ones(shape=(np.sum(conn_syna[0:p.N_E]),))*J_EI + np.random.randn(np.sum(conn_syna[0:p.N_E]))*sigma_EI)
             J_coo_data_list += list(np.ones(shape=(np.sum(conn_syna[p.N_E:p.N_E+p.N_I]),))*J_II + np.random.randn(np.sum(conn_syna[p.N_E:p.N_E+p.N_I]))*sigma_II)
-        
+
     else:
         #一列一列地构建这个稀疏矩阵，neuron_index表示应当是哪一列
         d_list = np.block([np.ones(p.N_E) * p.d_EE, np.ones(p.N_I) * p.d_EI])
@@ -210,15 +210,15 @@ def generate_net_sparse(p:Network_Params, dim=2, homo_fix_point = False):
             data_syna_II = J_II + sigma_II * np.random.randn(len(list(conn_syna_II)))
             data_syna_II = data_syna_II - (np.mean(data_syna_II) - J_II)
             J_coo_data_list += list(data_syna_II)
-        
+
     J_spa = spa.coo_matrix((J_coo_data_list, (J_coo_row_list, J_coo_col_list)), shape=(p.N_E+p.N_I, p.N_E+p.N_I))
     return J_spa
-            
+
 #理论预测圆形部分半径
 def calc_pred_radius(p:Network_Params, dim = 1):
     J_EE, J_EI, J_IE, J_II = p.g_bar_EE/p.N_EE, p.g_bar_EI/p.N_EI, p.g_bar_IE/p.N_IE, p.g_bar_II/p.N_II
     sigma_EE, sigma_EI, sigma_IE, sigma_II = p.g_EE/np.sqrt(p.N_EE), p.g_EI/np.sqrt(p.N_EI), p.g_IE/np.sqrt(p.N_IE), p.g_II/np.sqrt(p.N_II)
-    
+
     if dim == 1:
         sigma_eff_EE = p.N_EE * np.sqrt(p.N_E/p.N_E) * ((1 - p.N_EE/(2 * np.sqrt(np.pi)*p.d_EE*(p.N_E))) * J_EE **2 + sigma_EE**2)
         sigma_eff_IE = p.N_IE * np.sqrt(p.N_E/p.N_I) * ((1 - p.N_IE/(2 * np.sqrt(np.pi)*p.d_IE*(p.N_I))) * J_IE **2 + sigma_IE**2)
@@ -283,7 +283,7 @@ def calc_pred_outliers(p:Network_Params, dim = 1, radius_filter = True):
         if (np.abs(lambda_list_pred[i]) > radius) or (not radius_filter):
             lambda_list_pred_select.append(lambda_list_pred[i])
             label_list_pred_select.append(label_list_pred[i])
-    
+
     return (lambda_list_pred_select,label_list_pred_select)
 
 #这个函数用于返回最大的理论特征以及它的标签，需要注意这个函数没有过滤掉小于半径的部分
@@ -301,14 +301,14 @@ def calc_max_theoried_lambda(p:Network_Params, dim = 1):
         n_list_x, n_list_y = np.meshgrid(n_list, n_list)
         n_list_abs = np.sqrt(n_list_x ** 2 + n_list_y ** 2)
         k_list = 2 * np.pi * n_list_abs
-        
+
     g_eff_EE_n = np.exp(-(k_list*p.d_EE)**2/2) * p.g_bar_EE
     g_eff_IE_n = np.exp(-(k_list*p.d_IE)**2/2) * p.g_bar_IE
     g_eff_EI_n = np.exp(-(k_list*p.d_EI)**2/2) * p.g_bar_EI
     g_eff_II_n = np.exp(-(k_list*p.d_II)**2/2) * p.g_bar_II
     lambda_list_pred_pos = 0.5*(g_eff_EE_n+g_eff_II_n+np.emath.sqrt((g_eff_EE_n-g_eff_II_n)**2+4*g_eff_IE_n*g_eff_EI_n))
     lambda_list_pred_neg = 0.5*(g_eff_EE_n+g_eff_II_n-np.emath.sqrt((g_eff_EE_n-g_eff_II_n)**2+4*g_eff_IE_n*g_eff_EI_n))
-    
+
     if dim == 1:
         max_lambda_pos, max_label_pos = lambda_list_pred_pos[np.argmax(np.real(max_lambda_pos))], n_list[np.argmax(np.real(max_lambda_pos))]
         max_lambda_neg, max_label_neg = lambda_list_pred_neg[np.argmax(np.real(max_lambda_neg))], n_list[np.argmax(np.real(max_lambda_neg))]
@@ -319,10 +319,10 @@ def calc_max_theoried_lambda(p:Network_Params, dim = 1):
         max_lambda_pos = lambda_list_pred_pos[max_n_x_pos_loc[0], max_n_y_pos_loc[0]]
         max_n_x_neg_loc, max_n_y_neg_loc = np.where(np.real(lambda_list_pred_neg) == np.max(np.real(lambda_list_pred_neg)))
         max_n_x_neg, max_n_y_neg = n_list[max_n_x_neg_loc[0]], n_list[max_n_y_neg_loc[0]]
-        max_lambda_neg = lambda_list_pred_neg[max_n_x_neg_loc[0], max_n_y_neg_loc[0]]       
+        max_lambda_neg = lambda_list_pred_neg[max_n_x_neg_loc[0], max_n_y_neg_loc[0]]
         max_lambda, max_label = (max_lambda_pos, (0, max_n_x_pos, max_n_y_pos)) if (np.real(max_lambda_pos) > np.real(max_lambda_neg)) else (max_lambda_neg, (1, max_n_x_neg, max_n_y_neg))
     return (max_lambda, max_label)
-    
+
 
 
 #这个函数用于返回圆形部分特征根
@@ -360,7 +360,7 @@ def temp_plot_pred(p_net:Network_Params, dim=1):
 
     plt.plot(x_dots, y_dots, c='lightcoral', linewidth=1)
     plt.plot(x_dots, -y_dots, c='lightcoral', linewidth=1)
-    plt.scatter(real_part_pred_select, imag_part_pred_select, s=10, c='lightcoral', marker='x')
+    plt.scatter(real_part_pred_select, imag_part_pred_select, s=40, c='lightcoral', marker='x')
     plt.axis("equal")
 
 #这是一个临时版本，只能处理恰好是整数的状态

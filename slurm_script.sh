@@ -13,5 +13,6 @@
 
 
 ###
+conda activate pt2
 python_script="$1"
 srun python "$python_script"

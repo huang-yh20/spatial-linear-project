@@ -55,14 +55,14 @@ bulk_eig_indice = find_points(eigs, 0.1+0j, bulk_plot_num)
 
 artfigs_plot_eigs(eigs,axvline=False)
 plt.tight_layout()
-plt.savefig(r"figs/artfigs_eigsandeigV2D_eigs.png")
+plt.savefig(r"figs/artfigs_eigsandeigV2D_eigs.svg")
 plt.close()
 
 
 temp_plot_pred(p_net, dim=2)
 artfigs_plot_eigs(eigs)
 plt.tight_layout()
-plt.savefig(r"figs/artfigs_eigsandeigV2D_eigs_withpred.png")
+plt.savefig(r"figs/artfigs_eigsandeigV2D_eigs_withpred.svg")
 plt.close()
 
 eigs_indice = outlier_eig_indice + bulk_eig_indice
@@ -90,7 +90,7 @@ for eig_trial in range(len(eigs_indice)):
     cb.ax.set_title("Activity")
     cb.update_ticks()
     plt.tight_layout()
-    plt.savefig(r"figs/artfigs_eigsandeigV2D_eigV_"+str(eig_trial)+".png")
+    plt.savefig(r"figs/artfigs_eigsandeigV2D_eigV_"+str(eig_trial)+".svg")
     plt.close()
 
 

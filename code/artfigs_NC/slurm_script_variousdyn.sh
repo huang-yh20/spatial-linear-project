@@ -17,6 +17,4 @@ cd ../..
 trial1=$TRIAL1
 trial2=$TRIAL2
 
-source /home/guozhang/anaconda3/etc/profile.d/conda.sh
-conda activate pt2
-python ./code/artfigs_NC/Fig2_phase_prorec.py $trial1 $trial2
+python ./code/artfigs_NC/Fig3_variousdyn_prorec.py $trial1 $trial2

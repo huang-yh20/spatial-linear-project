@@ -8,8 +8,9 @@ from tqdm import trange
 import matplotlib.colors as mcolors
 from matplotlib.ticker import MaxNLocator
 from matplotlib.ticker import FuncFormatter
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import ListedColormap, BoundaryNorm
 from typing import NamedTuple, Union, Callable, List
+from itertools import combinations
 import os
 import sys
 sys.path.append("./code")
@@ -19,31 +20,39 @@ from dyn_ultis import *
 
 
 # plot phase diagram
-def plot_phase_diagram_axis_default(changed_params: str, changed_params_latex: str, generate_phase_params: callable, trial_num: int = 21):
+def plot_phase_diagram_axis_default(changed_params: str, changed_params_latex: str, generate_phase_params: callable, trial_num: int = 21, changed_params_values: list = None):
     showed_ticks = [0, (trial_num - 1) // 2, trial_num - 1]
-    
+
     def format_label(value):
         label = str(value)
         if len(label) > 5:
             return f"{value:.2f}"
         return label
 
-    yticks_labels = [format_label(generate_phase_params(ticks, 0, trial_num)._asdict()[changed_params[0]]) for ticks in showed_ticks]
-    xticks_labels = [format_label(generate_phase_params(0, ticks, trial_num)._asdict()[changed_params[1]]) for ticks in showed_ticks]
+    if changed_params_values is None:
+        yticks_labels = [format_label(generate_phase_params(ticks, 0, trial_num)._asdict()[changed_params[0]]) for ticks in showed_ticks]
+        xticks_labels = [format_label(generate_phase_params(0, ticks, trial_num)._asdict()[changed_params[1]]) for ticks in showed_ticks]
 
-    plt.ylabel(changed_params_latex[0], fontsize=15)
-    plt.xlabel(changed_params_latex[1], fontsize=15)
-    plt.yticks(ticks=showed_ticks, labels=yticks_labels, fontsize=15)
-    plt.xticks(ticks=showed_ticks, labels=xticks_labels, fontsize=15)
+    else:
+        # changed_params_values fomat: [[y_start, y_end], [x_start, x_end]]
+        yticks_labels_ori = [changed_params_values[0][0], 0.5 * (changed_params_values[0][0] + changed_params_values[0][1]), changed_params_values[0][1]]
+        xticks_labels_ori = [changed_params_values[1][0], 0.5 * (changed_params_values[1][0] + changed_params_values[1][1]), changed_params_values[1][1]]
+        yticks_labels = [format_label(label) for label in yticks_labels_ori]
+        xticks_labels = [format_label(label) for label in xticks_labels_ori]
+
+    plt.ylabel(changed_params_latex[0], fontsize=25)
+    plt.xlabel(changed_params_latex[1], fontsize=25)
+    plt.yticks(ticks=showed_ticks, labels=yticks_labels, fontsize=25)
+    plt.xticks(ticks=showed_ticks, labels=xticks_labels, fontsize=25)
 
 
 #TODO 加上一段可以把混沌状态也囊括进来的代码
-def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default, marker_list=None):
+def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_latex:str, generate_phase_params:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1, plot_phase_diagram_axis: Callable = plot_phase_diagram_axis_default, marker_list=None, changed_params_values: list = None):
     calc_phase_diagram = False
     t_step_onset = int(p_simul.t_step/p_simul.record_step * 1000)
     trial_num_theo = 61 #TEMP
     moran_radius = 5
-    
+
     p_net = generate_phase_params(0, 0, trial_num)
     if type(p_simul.activation_func) == str:
         activation_func_list = [activation_func_dict[p_simul.activation_func], activation_func_dict[p_simul.activation_func]]
@@ -56,11 +65,13 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
         activated_x_I = activation_func_list[1](x[:,p_net.N_E:p_net.N_E+p_net.N_I])
         activated_x = np.concatenate((activated_x_E,activated_x_I), axis=1)
         return activated_x
-    
+
     #calculate the phase boundary
-    def plot_phase_boundary(phase_diagram, radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo=21, trial_num=21, plot_list=[True,True,True,True]):
+    def plot_phase_boundary(p_simul, phase_diagram, radius_list, max_real_list, max_imag_list, wavenum_list, freq_list, trial_num_theo=21, trial_num=21, plot_list=[True,True,True,True]):
+        '''
         #build a mask for contour plot
-        mask = np.zeros((trial_num_theo, trial_num_theo))
+        delta_t = 1/(p_simul.t_step * p_simul.tau_m)
+        mask = np.ones((trial_num_theo, trial_num_theo))
         offsets = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         for trial1 in range(trial_num_theo):
             for trial2 in range(trial_num_theo):
@@ -72,8 +83,8 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                         if phase_diagram[ni, nj] != phase_diagram[trial1, trial2]:
                             is_with_in_a_phase = False
                             break
-                if not is_with_in_a_phase:
-                    mask[trial1, trial2] = 1 
+                if is_with_in_a_phase:
+                    mask[trial1, trial2] = np.nan
 
         eps = 0.001
         x = np.linspace(0, trial_num-1, trial_num_theo)
@@ -83,18 +94,48 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
         if plot_list[0]:
             plt.contour(X, Y, radius_list*mask, levels=[1], colors='gray', linestyles='--')
         if plot_list[1]:
-            plt.contour(X, Y, max_real_list*mask, levels=[1], colors='black', linestyles='--')
+            plt.contour(X, Y, np.sqrt((1-delta_t+max_real_list*delta_t)**2 + (max_imag_list*delta_t)**2)*mask, levels=[1], colors='black', linestyles='--')
         if plot_list[2]:
             plt.contour(X, Y, wavenum_list*mask, levels=[eps], colors='blue', linestyles='--')
         if plot_list[3]:
             plt.contour(X, Y, freq_list*mask, levels=[eps], colors='red', linestyles='--')
+        '''
+        is_boundary = np.zeros((trial_num_theo, trial_num_theo))
+        offsets = [(-1, 0), (0, -1)]
+        for trial1 in range(trial_num_theo):
+            for trial2 in range(trial_num_theo):
+                is_with_in_a_phase = True
+                for di, dj in offsets:
+                    ni = trial1 + di
+                    nj = trial2 + dj
+                    if ni >= 0 and ni < trial_num_theo and nj >= 0 and nj < trial_num_theo:
+                        if phase_diagram[ni, nj] != phase_diagram[trial1, trial2]:
+                            is_with_in_a_phase = False
+                            break
+                if not is_with_in_a_phase:
+                    is_boundary[trial1, trial2] = 1
+        phase_list = np.unique(phase_diagram)
+        x = np.linspace(0, trial_num-1, trial_num_theo)
+        y = np.linspace(0, trial_num-1, trial_num_theo)
+        X, Y = np.meshgrid(x, y)
+        for phase_a, phase_b in combinations(phase_list, 2):
+            mask = (phase_diagram == phase_a) | (phase_diagram == phase_b)
+            phase_diagram_temp = phase_diagram.copy()
+            phase_diagram_temp[~mask] = np.nan
+            # plt.plot(np.where(mask * is_boundary)[1]*(trial_num-1)/(trial_num_theo-1), np.where(mask * is_boundary)[0]*(trial_num-1)/(trial_num_theo-1), c='k', linestyle='--')
+            plt.contour(X, Y, phase_diagram_temp, levels=[0.5*(phase_a + phase_b)], colors='r', linestyles='--', linewidths=3)
+        return None
+
 
     #phase_diagram: 0:stable, 1:chaos, 2:global, 3:bump, 4:osc, 5:wave
     colors = ['white', 'gray', 'blue', 'yellow', 'green', 'pink']
     cmap_phase = ListedColormap(colors)
+    boundaries = np.arange(-0.5, len(colors) + 0.5, 1)  # [-0.5, 0.5, 1.5, ..., 5.5]
+    norm = BoundaryNorm(boundaries, ncolors=len(colors))
+
 
     #TEMP
-    if False and (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_radius_list.npy"):
+    if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_radius_list.npy"):
         radius_list = np.load("./data/artfigs_NC_"+file_name+"_radius_list.npy")
         max_real_list = np.load("./data/artfigs_NC_"+file_name+"_max_real_list.npy")
         max_imag_list = np.load("./data/artfigs_NC_"+file_name+"_max_imag_list.npy")
@@ -127,7 +168,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                     # max_real_list[trial1, trial2] = real_part_pred_select[max_real_index]
                     # max_imag_list[trial1, trial2] = imag_part_pred_select[max_real_index]
                     # wavenum = label_list_pred_select[max_real_index]
-                    # wavenum_list[trial1, trial2] = np.sqrt(wavenum[1]**2 + wavenum[2]**2)            
+                    # wavenum_list[trial1, trial2] = np.sqrt(wavenum[1]**2 + wavenum[2]**2)
                     # freq_list[trial1, trial2] = np.abs(imag_part_pred_select[max_real_index])/(2*np.pi)
 
                     #correction for finite dt
@@ -138,26 +179,26 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                     max_real_list[trial1, trial2] = real_part_pred_select[max_distance_index]
                     max_imag_list[trial1, trial2] = imag_part_pred_select[max_distance_index]
                     wavenum = label_list_pred_select[max_distance_index]
-                    wavenum_list[trial1, trial2] = np.sqrt(wavenum[1]**2 + wavenum[2]**2)            
+                    wavenum_list[trial1, trial2] = np.sqrt(wavenum[1]**2 + wavenum[2]**2)
                     freq_list[trial1, trial2] = np.abs(imag_part_pred_select[max_distance_index])/(2*np.pi)
 
-                else: 
+                else:
                     max_real_list[trial1, trial2] = 0
                     max_imag_list[trial1, trial2] = 0
                     wavenum_list[trial1, trial2] = 0
                     freq_list[trial1, trial2] = 0
-                
+
                 #TEMP 最好把各种分界都画出来，想一下怎么做
                 if radius <= 1 and max_distance_eff <= 1:
                     phase_diagram[trial1, trial2] = 0
                 elif radius >= 1 and max_distance_eff <= 1:
                     phase_diagram[trial1, trial2] = 1
-                elif max_imag_list[trial1, trial2] <= 0:
+                elif max_imag_list[trial1, trial2] == 0:
                     if wavenum_list[trial1, trial2] <= 0:
                         phase_diagram[trial1, trial2] = 2
                     if wavenum_list[trial1, trial2] > 0:
                         phase_diagram[trial1, trial2] = 3
-                elif max_imag_list[trial1, trial2] > 0:
+                elif max_imag_list[trial1, trial2] != 0:
                     if wavenum_list[trial1, trial2] <= 0:
                         phase_diagram[trial1, trial2] = 4
                     if wavenum_list[trial1, trial2] > 0:
@@ -170,16 +211,17 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
         np.save("./data/artfigs_NC_"+file_name+"_freq_list.npy", freq_list)
 
     #plot phase
-    plt.imshow(phase_diagram, origin='lower', cmap=cmap_phase)
+    plt.imshow(phase_diagram, origin='lower', cmap=cmap_phase, norm=norm)
     if marker_list != None:
         for point in marker_list:
             plt.scatter(3*point[1], 3*point[0], marker='*', color='k', s=100)
-    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num_theo)
+    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num_theo, changed_params_values = changed_params_values)
     # TEMP phase diagram doesn't need boundary
-    # plot_phase_boundary(phase_diagram, radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo, trial_num_theo, plot_list=[True,True,True,True])
+    # plot_phase_boundary(p_simul,phase_diagram, radius_list, max_real_list, max_imag_list, wavenum_list, freq_list, trial_num_theo, trial_num_theo, plot_list=[True,True,True,True])
     plt.tight_layout()
     plt.savefig("./figs/artfigs_NC_"+file_name+"_phase.svg")
     plt.close()
+
 
     #magnitude of neural activity
     if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_acti.npy"):
@@ -195,19 +237,21 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
         mean_acti = np.mean(mean_acti_all_repeat, axis=0)
         np.save("./data/artfigs_NC_"+file_name+"_mean_acti.npy", mean_acti)
 
-    plt.imshow(mean_acti, origin='lower', cmap='viridis', vmin=0, vmax=np.max(mean_acti))
+    plt.imshow(mean_acti, origin='lower', cmap='viridis', vmin=0, vmax=1)
     # cb = plt.colorbar()
     # cb.set_ticks([0, 0.5, 1])
     # cb.set_ticklabels(['0', '0.5', '1'])
-    # cb.ax.tick_params(labelsize=15)
+    # cb.ax.tick_params(labelsize=20)
     # cb.update_ticks()
-    cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=4)
-    cb.ax.tick_params(labelsize=15)
-    cb.update_ticks()
+    # cb = plt.colorbar()
+    # cb.locator = MaxNLocator(nbins=3)
+    # cb.ax.tick_params(labelsize=20)
+    # cb.update_ticks()
 
-    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-    plot_phase_boundary(phase_diagram, radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,False,False])
+    # plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num, changed_params_values = changed_params_values)
+    plt.xticks([])  
+    plt.yticks([])    
+    plot_phase_boundary(p_simul, phase_diagram, radius_list, max_real_list, max_imag_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,False,False])
     plt.tight_layout()
     plt.savefig("./figs/artfigs_NC_"+file_name+"_acti.svg")
     plt.close()
@@ -229,12 +273,14 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
 
     plt.imshow(mean_CV, origin='lower', cmap='viridis', vmin=0, vmax=np.max(mean_CV))
     cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=4)
-    cb.ax.tick_params(labelsize=15)
+    cb.locator = MaxNLocator(nbins=3)
+    cb.ax.tick_params(labelsize=20)
     cb.update_ticks()
 
-    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-    plot_phase_boundary(phase_diagram, radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,False,True])
+    # plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num, changed_params_values = changed_params_values)
+    plot_phase_boundary(p_simul,phase_diagram, radius_list, max_real_list, max_imag_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,False,True])
+    plt.xticks([])  
+    plt.yticks([])    
     plt.tight_layout()
     plt.savefig("./figs/artfigs_NC_"+file_name+"_CV.svg")
     plt.close()
@@ -248,8 +294,8 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
         mean_sync = np.load("./data/artfigs_NC_"+file_name+"_mean_local_sync.npy")
     else:
         for trial1 in trange(trial_num):
-            for trial2 in range(trial_num):  
-                for repeat_trial in range(repeat_num):         
+            for trial2 in range(trial_num):
+                for repeat_trial in range(repeat_num):
                     record_x = np.load(r"./data/artfigs_NC_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
                     activated_x = calc_activated_x(record_x)[t_step_onset::, 0:p_net.N_E]
                     activated_x_E_2d = activated_x.reshape((np.shape(activated_x)[0], int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
@@ -259,14 +305,16 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
         mean_sync = np.mean(mean_sync_all, axis=0)
         np.save("./data/artfigs_NC_"+file_name+"_mean_local_sync.npy", mean_sync)
     plt.imshow(mean_sync, origin='lower', cmap='viridis', vmin=0, vmax=np.max(mean_sync))
-    cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=4)  
-    cb.update_ticks()
-    cb.ax.tick_params(labelsize=15)
-    cb.update_ticks()
+    # cb = plt.colorbar()
+    # cb.locator = MaxNLocator(nbins=3)
+    # cb.update_ticks()
+    # cb.ax.tick_params(labelsize=20)
+    # cb.update_ticks()
 
-    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-    plot_phase_boundary(phase_diagram, radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,False,False])
+    # plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num, changed_params_values = changed_params_values)
+    plt.xticks([])  
+    plt.yticks([])    
+    plot_phase_boundary(p_simul, phase_diagram, radius_list, max_real_list, max_imag_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,False,False])
     plt.tight_layout()
     plt.savefig("./figs/artfigs_NC_"+file_name+"_local_sync.svg")
     plt.close()
@@ -278,8 +326,8 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     else:
         for trial1 in trange(trial_num):
             for trial2 in range(trial_num):
-                mean_sync_one_trial = [] 
-                for repeat_trial in range(repeat_num):              
+                mean_sync_one_trial = []
+                for repeat_trial in range(repeat_num):
                     record_x = np.load(r"./data/artfigs_NC_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
                     activated_x = calc_activated_x(record_x)
                     mean_sync_one_trial.append(np.mean(np.abs(np.sum(activated_x, axis=1))/np.sum(np.abs(activated_x), axis=1)))
@@ -287,14 +335,16 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
         np.save("./data/artfigs_NC_"+file_name+"_mean_global_sync.npy", mean_sync)
 
     plt.imshow(mean_sync, origin='lower', cmap='viridis', vmin=0, vmax=np.max(mean_sync))
-    cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=4)  
-    cb.update_ticks()
-    cb.ax.tick_params(labelsize=15)
-    cb.update_ticks()
+    # cb = plt.colorbar()
+    # cb.locator = MaxNLocator(nbins=3)
+    # cb.update_ticks()
+    # cb.ax.tick_params(labelsize=20)
+    # cb.update_ticks()
 
-    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-    plot_phase_boundary(phase_diagram, radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,True,False])
+    # plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num, changed_params_values = changed_params_values)
+    plt.xticks([])  
+    plt.yticks([])    
+    plot_phase_boundary(p_simul, phase_diagram, radius_list, max_real_list, max_imag_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,True,False])
     plt.tight_layout()
     plt.savefig("./figs/artfigs_NC_"+file_name+"_global_sync.svg")
     plt.close()
@@ -303,49 +353,91 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     mean_freq = np.zeros((trial_num, trial_num))
     if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_freq.npy"):
         mean_freq = np.load("./data/artfigs_NC_"+file_name+"_mean_freq.npy")
-    else:    
+    else:
         for trial1 in trange(trial_num):
             for trial2 in range(trial_num):
                 freq_list_temp = []
                 for repeat_trial in range(repeat_num):
                     record_x = np.load(r"./data/artfigs_NC_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
-                    activated_x = calc_activated_x(record_x)     
-                    activated_x = activated_x - np.mean(activated_x, axis=0)          
+                    activated_x = calc_activated_x(record_x)
+                    activated_x = activated_x - np.mean(activated_x, axis=0)
                     sp_activated_x = np.abs(np.fft.fft(activated_x[t_step_onset::,:], axis=0))
                     freq_sp = np.fft.fftfreq(np.shape(activated_x[t_step_onset::,:])[0], 1/(p_simul.t_step/p_simul.record_step))
                     sp_mean = np.mean(sp_activated_x, axis=1)
                     freq_list_temp.append(np.abs(freq_sp[np.argmax(sp_mean)]))
 
-                if freq_list_temp.count(0) >= (0.5 * repeat_num):
+                if (freq_list_temp.count(0) + freq_list_temp.count(1)) >= (0.5 * repeat_num):
                     mean_freq[trial1, trial2] = 0
                 else:
-                    mean_freq[trial1, trial2] = np.mean(np.array(freq_list_temp))  * (len(freq_list_temp)/(len(freq_list_temp) - freq_list_temp.count(0)))
+                    mean_freq[trial1, trial2] = np.mean(np.array(freq_list_temp))  * (len(freq_list_temp)/(len(freq_list_temp) - (freq_list_temp.count(0)+freq_list_temp.count(1))))
         mean_freq *= 1000 #TEMP for ms
         np.save("./data/artfigs_NC_"+file_name+"_mean_freq.npy",mean_freq)
     plt.imshow(mean_freq, origin='lower', cmap='viridis', vmin=0)
-    cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=4)
-    cb.ax.tick_params(labelsize=15)
-    cb.update_ticks()
+    # cb = plt.colorbar()
+    # cb.locator = MaxNLocator(nbins=3)
+    # cb.ax.tick_params(labelsize=20)
+    # cb.update_ticks()
 
     #TODO name of freq list conflict
-    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-    plot_phase_boundary(phase_diagram, radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,False,True])
+    # plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num, changed_params_values = changed_params_values)
+    plot_phase_boundary(p_simul, phase_diagram, radius_list, max_real_list, max_imag_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,False,True])
     plt.tight_layout()
     plt.savefig("./figs/artfigs_NC_"+file_name+"_freq_exp.svg")
+    plt.close()
+
+    #osc. index
+    mean_osc_index = np.zeros((trial_num, trial_num))
+    if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_osc_index.npy"):
+        mean_osc_index = np.load("./data/artfigs_NC_"+file_name+"_mean_osc_index.npy")
+    else:
+        for trial1 in trange(trial_num):
+            for trial2 in range(trial_num):
+                osc_index_list_temp = []
+                for repeat_trial in range(repeat_num):
+                    record_x = np.load(r"./data/artfigs_NC_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
+                    freq_max_eps = 1
+                    activated_x = calc_activated_x(record_x)
+                    activated_x = activated_x - np.mean(activated_x, axis=0)
+                    sp_activated_x = np.abs(np.fft.fft(activated_x[t_step_onset::,:], axis=0))
+                    freq_sp = np.fft.fftfreq(np.shape(activated_x[t_step_onset::,:])[0], 1/(p_simul.t_step/p_simul.record_step))
+                    sp_mean = np.mean(sp_activated_x, axis=1)
+                    freq_len = np.shape(sp_mean)[0]//2
+                    freq_max = np.argmax(sp_mean[0:freq_len])
+                    if freq_max > freq_max_eps:
+                        freq_max_left = np.argmin(sp_mean[0:freq_max])
+                        freq_max_right = freq_max + (freq_max - freq_max_left)
+                        osc_index = np.sum(sp_mean[freq_max_left:freq_max_right]**2)/np.sum(sp_mean[0:freq_len]**2)
+                    else:
+                        osc_index = 0
+                    osc_index_list_temp.append(osc_index)
+                mean_osc_index[trial1, trial2] = np.mean(np.array(osc_index_list_temp))
+        np.save("./data/artfigs_NC_"+file_name+"_mean_osc_index.npy", mean_osc_index)
+    plt.imshow(mean_osc_index, origin='lower', cmap='viridis', vmin=0, vmax=1)
+    # cb = plt.colorbar()
+    # cb.locator = MaxNLocator(nbins=3)
+    # cb.update_ticks()
+    # cb.ax.tick_params(labelsize=20)
+    # cb.update_ticks()
+
+    # plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num, changed_params_values = changed_params_values)
+    plt.xticks([])  
+    plt.yticks([])
+    plot_phase_boundary(p_simul, phase_diagram, radius_list, max_real_list, max_imag_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,False,True])
+    plt.tight_layout()
+    plt.savefig("./figs/artfigs_NC_"+file_name+"_mean_osc_index.svg")
     plt.close()
 
     #simul wavenum
     mean_wavenum = np.zeros((trial_num, trial_num))
     if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_wavenum.npy"):
         mean_wavenum = np.load("./data/artfigs_NC_"+file_name+"_mean_wavenum.npy")
-    else:   
+    else:
         for trial1 in trange(trial_num):
             for trial2 in range(trial_num):
                 wavenum_list_temp = []
                 for repeat_trial in range(repeat_num):
                     record_x = np.load(r"./data/artfigs_NC_"+file_name+'_'+str(trial1)+'_'+str(trial2)+'_'+str(repeat_trial)+r'.npy')
-                    activated_x = calc_activated_x(record_x)    
+                    activated_x = calc_activated_x(record_x)
                     activated_x_2d = activated_x[t_step_onset::,0:p_net.N_E].reshape((np.shape(activated_x)[0] - t_step_onset, int(np.sqrt(p_net.N_E)), int(np.sqrt(p_net.N_E))))
                     sp_activated_x = np.abs(np.fft.fft2(activated_x_2d))
                     sp_mean = np.mean(sp_activated_x, axis=0)
@@ -359,13 +451,13 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
                     mean_wavenum[trial1, trial2] = np.mean(np.array(wavenum_list_temp)) * (len(wavenum_list_temp)/(len(wavenum_list_temp) - wavenum_list_temp.count(0)))
         np.save("./data/artfigs_NC_"+file_name+"_mean_wavenum.npy", mean_wavenum)
     plt.imshow(mean_wavenum, origin='lower', cmap='viridis', vmin=0)
-    cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=4)
-    cb.ax.tick_params(labelsize=15)
-    cb.update_ticks()
+    # cb = plt.colorbar()
+    # cb.locator = MaxNLocator(nbins=3)
+    # cb.ax.tick_params(labelsize=20)
+    # cb.update_ticks()
 
-    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-    plot_phase_boundary(phase_diagram, radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,True,False])
+    # plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num, changed_params_values = changed_params_values)
+    plot_phase_boundary(p_simul, phase_diagram, radius_list, max_real_list, max_imag_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,True,False])
     plt.tight_layout()
     plt.savefig("./figs/artfigs_NC_"+file_name+"_wavenum_exp.svg")
     plt.close()
@@ -376,7 +468,7 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     weight_matrix = weight_matrix[np.newaxis, :, :]
     if (not calc_phase_diagram) and os.path.exists("./data/artfigs_NC_"+file_name+"_mean_moran.npy"):
         mean_moran = np.load("./data/artfigs_NC_"+file_name+"_mean_moran.npy")
-    else:   
+    else:
         for trial1 in trange(trial_num):
             for trial2 in range(trial_num):
                 moran_list = []
@@ -397,18 +489,21 @@ def plot_phase_diagram_new(file_name:str, changed_params:str, changed_params_lat
     # norm = mcolors.TwoSlopeNorm(vmin=-1, vcenter=0, vmax=1)
     plt.imshow(mean_moran, origin='lower', vmin=0, cmap='viridis')
     cb = plt.colorbar()
-    cb.locator = MaxNLocator(nbins=4)
-    cb.ax.tick_params(labelsize=15)
+    cb.locator = MaxNLocator(nbins=3)
+    cb.ax.tick_params(labelsize=20)
     cb.update_ticks()
 
-    plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num)
-    plot_phase_boundary(phase_diagram, radius_list, max_real_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,True,False])
+    # plot_phase_diagram_axis(changed_params, changed_params_latex, generate_phase_params, trial_num, changed_params_values = changed_params_values)
+    plt.xticks([])  
+    plt.yticks([])
+    plot_phase_boundary(p_simul,phase_diagram, radius_list, max_real_list, max_imag_list, wavenum_list, freq_list, trial_num_theo, trial_num, plot_list=[True,True,True,False])
     plt.tight_layout()
     plt.savefig("./figs/artfigs_NC_"+file_name+"_moran.svg")
     plt.close()
-   
 
-    
+
+
+
 
 #plot phase diagram 1p, TODO
 def plot_phase_diagram1p_new(file_name:str, changed_params_value:tuple, changed_params_latex:str, generate_phase_params1p:callable, p_simul:Simul_Params, trial_num: int = 21, repeat_num:int = 1):
@@ -424,7 +519,7 @@ def plot_phase_diagram1p_new(file_name:str, changed_params_value:tuple, changed_
         activated_x_I = activation_func_list[1](x[:,p_net.N_E:p_net.N_E+p_net.N_I])
         activated_x = np.concatenate((activated_x_E,activated_x_I), axis=1)
         return activated_x
-    
+
     t_step_onset = int(p_simul.t_step/p_simul.record_step * 1000)
     trial_num_theo = 101
     moran_radius = 5
@@ -436,15 +531,15 @@ def plot_phase_diagram1p_new(file_name:str, changed_params_value:tuple, changed_
     for trial in range(trial_num_theo):
         p_net = generate_phase_params1p(trial, trial_num_theo)
         p_net_eff = calc_eff_p_net(p_net, p_simul)
-        radius_list.append(calc_pred_radius(p_net_eff,dim=2)) 
+        radius_list.append(calc_pred_radius(p_net_eff,dim=2))
         lambda_list_pred_select,label_list_pred_select = calc_pred_outliers(p_net_eff, dim=2)
         real_part_pred_select = np.real(lambda_list_pred_select)
         if len(lambda_list_pred_select) != 0:
             max_real_list.append(real_part_pred_select[np.argmax(real_part_pred_select)])
-        else: 
+        else:
             max_real_list.append(np.nan)
-    #find params that radius=1 
-    params_value_chaos_trans_list = [] 
+    #find params that radius=1
+    params_value_chaos_trans_list = []
     for trial in range(trial_num_theo-1):
         if (radius_list[trial] - 1) * (radius_list[trial+1] - 1) <= 0:
             params_value_chaos_trans = changed_params_value[0] * ((trial_num_theo-1-trial)/(trial_num_theo-1)) + changed_params_value[1] * ((trial)/(trial_num_theo-1))
@@ -487,7 +582,7 @@ def plot_phase_diagram1p_new(file_name:str, changed_params_value:tuple, changed_
             denominator = np.sum(centralized_activated_x_E_2d ** 2, axis=(1,2))
             moran_index_time = (1 / np.sum(weight_matrix)) * (numerator / (denominator+1e-5))
             moran_index_all[repeat_trial, trial] = np.mean(moran_index_time)
-    
+
     mean_sync, std_sync = np.mean(mean_sync_all, axis=0), np.std(mean_sync_all, axis=0)
     mean_acti, std_acti = np.mean(mean_acti_all, axis=0), np.std(mean_acti_all, axis=0)
     mean_moran, std_moran = np.mean(moran_index_all, axis=0), np.std(moran_index_all, axis=0)
@@ -504,7 +599,7 @@ def plot_phase_diagram1p_new(file_name:str, changed_params_value:tuple, changed_
     plt.gca().yaxis.set_major_locator(plt.MaxNLocator(5))
     plt.xlabel(changed_params_latex, fontsize=15)
     plt.legend()
-    
+
     plt.savefig("./figs/artfigs_NC_phase_1p_"+file_name+".svg")
 
 #plot eigs
@@ -519,29 +614,29 @@ def eigs_axislim_default(eigs:np.ndarray):
     return ((x_center - 0.5*fig_lim, x_center + 0.5*fig_lim), (y_center - 0.5*fig_lim, y_center + 0.5*fig_lim))
 
 
-def artfigs_plot_eigs(eigs:np.ndarray, ax = None, eigs_axislim: Callable = eigs_axislim_default, axvline:bool=True, radius_transparent = None):
+def artfigs_plot_eigs(eigs:np.ndarray, ax = None, eigs_axislim: Callable = eigs_axislim_default, axvline:bool=True, radius_transparent = None, marker_size = None):
     xlim, ylim = eigs_axislim(eigs)
     if ax == None:
         ax = plt.gca()
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
         ax.set_xlabel("$Re(\\lambda)$", fontsize=30)
-        ax.tick_params(axis='x', labelsize=30)  
-        ax.xaxis.set_major_locator(MaxNLocator(nbins=4)) 
+        ax.tick_params(axis='x', labelsize=30)
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=4))
         ax.set_ylabel("$Im(\\lambda)$", fontsize=30)
-        ax.tick_params(axis='y', labelsize=30)  
-        ax.yaxis.set_major_locator(MaxNLocator(nbins=4)) 
-        ax.set_aspect('equal') 
-    else: 
+        ax.tick_params(axis='y', labelsize=30)
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=4))
+        ax.set_aspect('equal')
+    else:
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
         #ax.set_xlabel("$Re(\\lambda)$")
-        ax.tick_params(axis='x', labelsize=30)  
-        ax.xaxis.set_major_locator(MaxNLocator(nbins=2)) 
+        ax.tick_params(axis='x', labelsize=30)
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=2))
         #ax.set_ylabel("$Im(\\lambda)$")
-        ax.tick_params(axis='y', labelsize=30)  
-        ax.yaxis.set_major_locator(MaxNLocator(nbins=2)) 
-        ax.set_aspect('equal') 
+        ax.tick_params(axis='y', labelsize=30)
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=2))
+        ax.set_aspect('equal')
 
     real_part = np.real(eigs)
     imag_part = np.imag(eigs)
@@ -552,10 +647,15 @@ def artfigs_plot_eigs(eigs:np.ndarray, ax = None, eigs_axislim: Callable = eigs_
             ax.axvline(x=1,c='gray',ls='--')
     else:
         mask = np.sqrt(real_part**2 + imag_part**2) > (radius_transparent + 0.05)
-        ax.scatter(real_part[mask], imag_part[mask], s=0.5, c='none', marker='o', edgecolors='k')
+        ax.scatter(real_part[mask], imag_part[mask], s=4, c='none', marker='o', edgecolors='k')
         max_real_imag = np.max(np.abs(np.concatenate((real_part, imag_part))))
-        dot_size = 0.01 * (radius_transparent/1.2)**2
-        ax.scatter(real_part[np.logical_not(mask)], imag_part[np.logical_not(mask)], s=dot_size, c='none', marker='o', edgecolors='k')
+        if marker_size == None:
+            dot_size = 0.02 * (radius_transparent/1.2)**2 / (np.abs(xlim[1] - xlim[0])/6)**2
+            linewidth = 1 * (radius_transparent/1.2) / (np.abs(xlim[1] - xlim[0])/6)
+        else:
+            dot_size = marker_size
+            linewidth = 1.5
+        ax.scatter(real_part[np.logical_not(mask)], imag_part[np.logical_not(mask)], s=dot_size, linewidths=linewidth, c='none', marker='o', edgecolors='k')
         if axvline:
             ax.axvline(x=1,c='gray',ls='--')
 
