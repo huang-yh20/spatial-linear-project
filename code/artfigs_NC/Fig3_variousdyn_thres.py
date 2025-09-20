@@ -19,14 +19,14 @@ from artfigs_NC_params import *
 from artfigs_NC_ultis import *
 
 file_name_0 = 'homo_d_II_g_bar_II_thres_L'
-file_name_list = ['thres_stable','thres_bump','thres_osc','thres_wave','thres_chaos']
+file_name_list = ['thres_stable_indiscale','thres_bump_indiscale','thres_osc_indiscale','thres_wave_indiscale','thres_chaos_indiscale']
 generate_params_func = generate_params_phase_d_II_g_bar_II_thres_L
 trial_params_list = [(10,10), (1,8), (10,2), (18,3), (10,19)] #TODO
 repeat_num = 1
 
 p_simul = Simul_Params(T = 2000, t_step=5, record_step=10, activation_func=['thres_linear','thres_powerlaw'], external_input="DC_noise",tau_m=20.0)
-t_show_onset, t_show_step, t_show_num, t_step_onset = 1700, 50, 6, 400
-t_dynt_onset, t_dynt_end = 1700, 2000
+t_show_onset, t_show_step, t_show_num, t_step_onset = 1680, 50, 6, 400
+t_dynt_onset, t_dynt_end = 1680, 1980 
 moran_radius = 5
 exc_plot_num, inh_plot_num = 4, 1
 
@@ -37,7 +37,7 @@ for trial_plot in trange(len(file_name_list)):
     if trial_plot == 4:
         t_dynt_onset, t_dynt_end = 1000, 2000
     else:
-        t_dynt_onset, t_dynt_end = 1700, 2000
+        t_dynt_onset, t_dynt_end = 1680, 1980 
 
     file_name = file_name_list[trial_plot]
     trial_params = trial_params_list[trial_plot]
@@ -81,12 +81,14 @@ for trial_plot in trange(len(file_name_list)):
     #plot dynimag
     record_x = np.load(r"./data/artfigs_NC_"+file_name_0+'_'+str(trial_params[0])+'_'+str(trial_params[1])+'_'+ str(0)+r'.npy')
     record_x = activation_func_list[0](record_x)
-    scale_max = np.minimum(np.max(record_x),300)
+    # scale_min, scale_max = 0, np.minimum(np.max(record_x),300)
+    # 下面是为了async弄的
+    scale_min, scale_max = np.min(record_x[500:,0:p_net.N_E]), np.minimum(np.max(record_x[500:,0:p_net.N_E]),300)
     record_x_img = (record_x[:,0:p_net.N_E]).reshape(np.shape(record_x)[0],int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))
     for trial_show in range(t_show_num):
         step_show = int((t_show_step * trial_show + t_show_onset) * p_simul.t_step/p_simul.record_step)
         fig, ax = plt.subplots()
-        norm = mcolors.TwoSlopeNorm(vmin=0, vcenter=0.5*scale_max ,vmax=scale_max)
+        norm = mcolors.TwoSlopeNorm(vmin=scale_min, vcenter=0.5*(scale_min + scale_max) ,vmax=scale_max)
         img = ax.imshow(record_x_img[step_show,:,:], norm=norm, origin='upper', aspect=1)
         ax.set_xlabel("Neuron location (X)", fontsize=25)
         ax.set_ylabel("Neuron location (Y)", fontsize=25)

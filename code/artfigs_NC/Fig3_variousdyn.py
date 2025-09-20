@@ -30,7 +30,8 @@ from artfigs_NC_params import *
 # show_file_name_list = ["d_II_g_bar_II_L_10_17","d_II_g_bar_II_L_5_5","d_II_g_bar_II_L_3_12","d_II_g_bar_II_L_17_7",'g_d_II_L_chaos_15_9',"d_II_g_bar_II_L_10_10"]
 # repeat_num = 5
 
-file_name_list = ['tanh_new_stable','tanh_new_global','tanh_new_osc','tanh_new_bump','tanh_new_wave','tanh_new_chaos']
+# file_name_list = ['tanh_new_stable','tanh_new_global','tanh_new_osc','tanh_new_bump','tanh_new_wave','tanh_new_chaos']
+file_name_list = ['tanh_new_stable_indiscale','tanh_new_global_indiscale','tanh_new_osc_indiscale','tanh_new_bump_indiscale','tanh_new_wave_indiscale','tanh_new_chaos_indiscale'] # 画附录用的
 show_file_name_list = ['wospa_g_bar_IE_g_bar_EE_10_5', 'wospa_g_bar_IE_g_bar_EE_5_15', 'wospa_g_bar_IE_g_bar_EE_18_15', 'wspa_g_bar_IE_g_bar_EE_5_15', 'wspa_g_bar_IE_g_bar_EE_18_15','g_d_II_L_chaos_15_9']
 order_file_name_list = ['wospa_g_bar_IE_g_bar_EE_10_5','wospa_g_bar_IE_g_bar_EE_5_15', 'wospa_g_bar_IE_g_bar_EE_18_15', 'wspa_g_bar_IE_g_bar_EE_5_15', 'wspa_g_bar_IE_g_bar_EE_18_15','g_d_II_L_chaos_15_9']
 p_net_eigs_list  = [generate_params_phase_wospa_g_bar_IE_g_bar_EE_L(10, 5), generate_params_phase_wospa_g_bar_IE_g_bar_EE_L(5, 15), generate_params_phase_wospa_g_bar_IE_g_bar_EE_L(18, 15),\
@@ -51,7 +52,7 @@ exc_plot_num, inh_plot_num = 4, 1
 for trial_plot in trange(len(file_name_list)):
     file_name = file_name_list[trial_plot]
     p_net = p_net_order_list[trial_plot]
-
+    '''
     #calc orderprams
     calc_orderprams_bool = False
     orderparams_name = ['Mean Acti.', 'Local Sync.', "Moran's Index", 'Osc. Index']
@@ -312,13 +313,13 @@ for trial_plot in trange(len(file_name_list)):
     plt.tight_layout()
     plt.savefig(r"./figs/artfigs_NC_variousdyn_dynt_"+file_name+".svg")
     plt.close()
-
+    '''
 
     #plot dynimag
     p_net = p_net_eigs_list[trial_plot]
     record_x = np.load(r"./data/artfigs_NC_"+show_file_name_list[trial_plot]+'_'+str(0)+r'.npy')
     record_x = activation_func(record_x)
-    #scale_max = np.max(record_x)
+    # scale_max = 0.5 * np.max(record_x[500:,0:p_net.N_E])
     scale_max = 1
     record_x_img = (record_x[:,0:p_net.N_E]).reshape(np.shape(record_x)[0],int(np.ceil(np.sqrt(p_net.N_E))), int(np.ceil(np.sqrt(p_net.N_E))))
     for trial_show in range(t_show_num):
