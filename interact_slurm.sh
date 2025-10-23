@@ -1,1 +1,0 @@
-salloc --partition=IMLcrunchers --exclusive
